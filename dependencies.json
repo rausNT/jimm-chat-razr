@@ -1,0 +1,22 @@
+[
+  {
+    "name": "cldcapi11-2.0.4.jar",
+    "sha256": "f86f41bfb4097e4bd9cdfeca528960f6977cbda0f5785342adef9909a6a3baef",
+    "url": "https://repo.maven.apache.org/maven2/org/microemu/cldcapi11/2.0.4/cldcapi11-2.0.4.jar"
+  },
+  {
+    "name": "ecj-4.6.1.jar",
+    "sha256": "9cddda75f4a1b4469e73f44e7b61a3e897d0f657df4797f9106ffe88c4eeade0",
+    "url": "https://repo.maven.apache.org/maven2/org/eclipse/jdt/core/compiler/ecj/4.6.1/ecj-4.6.1.jar"
+  },
+  {
+    "name": "midpapi20-2.0.4.jar",
+    "sha256": "b7f6ed5e0344c7000643ecc114e6edff3587e8e77face546af0e12ffd6dbe826",
+    "url": "https://repo.maven.apache.org/maven2/org/microemu/midpapi20/2.0.4/midpapi20-2.0.4.jar"
+  },
+  {
+    "name": "proguard-base-6.2.2.jar",
+    "sha256": "7587a3a415d6aea1946f597f4babe710a245f085bac4dc5e7cda653acfc39b03",
+    "url": "https://repo.maven.apache.org/maven2/net/sf/proguard/proguard-base/6.2.2/proguard-base-6.2.2.jar"
+  }
+]

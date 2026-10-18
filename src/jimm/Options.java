@@ -1,0 +1,1327 @@
+/* Modified 2026-10-18: public variant, empty personal defaults; server/common settings retained. GPL-2.0-or-later. */
+/* Jimm Chat modification notice (GPL-2.0-or-later).
+ * 2026-10-17: changed connection defaults and personal account defaults.
+ * 2026-10-18: added this dated notice; original authors and license retained.
+ * See COPYING, NOTICE.txt and CHANGES.md. No warranty.
+ */
+
+/*******************************************************************************
+Jimm - Mobile Messaging - J2ME ICQ clone
+Copyright (C) 2003-05  Jimm Project
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*******************************************************************************
+File: src/jimm/Options.java
+Version: 0.5.1  Date: 2006/10/31
+Author(s): Manuel Linsmayer, Andreas Rossbacher, Artyomov Denis, Igor Palkin
+******************************************************************************/
+
+
+/*******************************************************************************
+Current record store format:
+
+Record #1: VERSION               (UTF8)
+Record #2: OPTION KEY            (BYTE)
+           OPTION VALUE          (Type depends on key)
+           OPTION KEY            (BYTE)
+           OPTION VALUE          (Type depends on key)
+           OPTION KEY            (BYTE)
+           OPTION VALUE          (Type depends on key)
+           ...
+
+Option key            Option value
+  0 -  63 (00XXXXXX)  UTF8
+ 64 - 127 (01XXXXXX)  INTEGER
+128 - 191 (10XXXXXX)  BOOLEAN
+192 - 224 (110XXXXX)  LONG
+225 - 255 (111XXXXX)  SHORT, BYTE-ARRAY (scrambled String)
+******************************************************************************/
+
+
+package jimm;
+
+import jimm.ContactList;
+import jimm.comm.Util;
+import jimm.comm.Icq;
+import jimm.util.ResourceBundle;
+
+import java.io.*;
+import java.util.*;
+
+import javax.microedition.lcdui.*;
+import javax.microedition.rms.RecordStore;
+import javax.microedition.rms.RecordStoreException;
+
+import DrawControls.VirtualList;
+
+
+public class Options
+{
+	/* Option keys */
+	static final int OPTION_UIN1                       =   0;   /* String */
+	static final int OPTION_PASSWORD1                  = 228;   /* String  */
+	static final int OPTION_UIN2                       =  14;   /* String  */
+	static final int OPTION_PASSWORD2                  = 229;   /* String  */
+	static final int OPTION_UIN3                       =  15;   /* String  */
+	static final int OPTION_PASSWORD3                  = 230;   /* String  */
+	static final int OPTIONS_CURR_ACCOUNT              =  86;   /* int     */
+	
+	// Theese two options are not stored in RMS 
+	public static final int OPTION_UIN                 = 254;   /* String  */
+	public static final int OPTION_PASSWORD            = 255;   /* String  */
+	
+	public static final int OPTION_SRV_HOST            =   1;   /* String  */
+	public static final int OPTION_SRV_PORT            =   2;   /* String  */
+	public static final int OPTION_KEEP_CONN_ALIVE     = 128;   /* boolean */
+    public static final int OPTION_CONN_ALIVE_INVTERV  =  13;   /* String  */
+	public static final int OPTION_CONN_PROP           =  64;   /* int     */
+	public static final int OPTION_CONN_TYPE           =  83;   /* int     */
+	public static final int OPTION_AUTO_CONNECT	       = 138;   /* boolean */
+	public static final int OPTION_HTTP_USER_AGENT     =  17;   /* String  */
+	public static final int OPTION_HTTP_WAP_PROFILE    =  18;   /* String  */
+	public static final int OPTION_UI_LANGUAGE         =   3;   /* String  */
+	public static final int OPTION_DISPLAY_DATE        = 129;   /* boolean */
+	public static final int OPTION_CL_SORT_BY          =  65;   /* int     */
+	public static final int OPTION_CL_HIDE_OFFLINE     = 130;   /* boolean */
+	public static final int OPTION_MESS_NOTIF_MODE     =  66;   /* int     */
+	public static final int OPTION_MESS_NOTIF_FILE     =   4;   /* String  */
+	public static final int OPTION_MESS_NOTIF_VOL      =  67;   /* int     */
+	public static final int OPTION_ONLINE_NOTIF_MODE   =  68;   /* int     */
+	public static final int OPTION_ONLINE_NOTIF_FILE   =   5;   /* String  */
+	public static final int OPTION_ONLINE_NOTIF_VOL    =  69;   /* int     */
+	public static final int OPTION_VIBRATOR            =  75;   /* integer */
+	public static final int OPTION_TYPING_MODE		   =  88;
+	public static final int OPTION_TYPING_FILE		   =  16;   /* Striong */
+	public static final int OPTION_TYPING_VOL		   =  89;
+	public static final int OPTION_CP1251_HACK         = 133;   /* boolean */
+	public static final int OPTION_ONLINE_STATUS       = 192;   /* long    */
+	public static final int OPTION_CHAT_SMALL_FONT     = 135;   /* boolean */
+	public static final int OPTION_USER_GROUPS         = 136;   /* boolean */
+	public static final int OPTION_HISTORY             = 137;   /* boolean */
+	public static final int OPTION_SHOW_LAST_MESS      = 142;   /* boolean */
+	public static final int OPTION_CLASSIC_CHAT        = 143;   /* boolean */
+	public static final int OPTION_COLOR_SCHEME        =  73;   /* int     */
+	public static final int OPTION_STATUS_MESSAGE      =   7;   /* String  */
+	public static final int OPTION_LIGHT_TIMEOUT       =  74;   /* int     */
+	public static final int OPTION_LIGHT_MANUAL	       = 140;   /* boolean */
+	public static final int OPTION_FLASH_BACKLIGHT     = 147;   /* boolean */
+	
+	public static final int OPTION_USE_SMILES		   = 141;   /* boolean */
+	public static final int OPTION_MD5_LOGIN           = 144;   /* boolean */
+	
+	public static final int OPTIONS_GMT_OFFSET         =  87;   /* int     */
+	public static final int OPTIONS_LOCAL_OFFSET       =  90;   /* int     */
+	
+	public static final int OPTION_FULL_SCREEN         = 145;   /* boolean */
+	
+	protected static final int OPTIONS_LANG_CHANGED    = 148;
+	
+	public static final int OPTION_POPUP_WIN2          =  84;   /* int     */
+	public static final int OPTION_EXT_CLKEY0          =  77;   /* int     */
+	public static final int OPTION_EXT_CLKEYSTAR       =  78;   /* int     */
+	public static final int OPTION_EXT_CLKEY4          =  79;   /* int     */
+	public static final int OPTION_EXT_CLKEY6          =  80;   /* int     */
+	public static final int OPTION_EXT_CLKEYCALL       =  81;   /* int     */
+	public static final int OPTION_EXT_CLKEYPOUND      =  82;   /* int     */
+	public static final int OPTION_VISIBILITY_ID       =  85;   /* int     */
+	
+	//Hotkey Actions
+	public static final int HOTKEY_NONE     = 0;
+	public static final int HOTKEY_INFO     = 2;
+	public static final int HOTKEY_NEWMSG   = 3;
+	public static final int HOTKEY_ONOFF    = 4;
+	public static final int HOTKEY_OPTIONS  = 5;
+	public static final int HOTKEY_MENU     = 6;
+	public static final int HOTKEY_LOCK     = 7;
+	public static final int HOTKEY_HISTORY  = 8;
+	public static final int HOTKEY_MINIMIZE = 9;
+	public static final int HOTKEY_CLI_INFO = 10;
+	public static final int HOTKEY_FULLSCR  = 11;
+	
+
+	static int accountKeys[] = 
+	{
+		Options.OPTION_UIN1, Options.OPTION_PASSWORD1,
+		Options.OPTION_UIN2, Options.OPTION_PASSWORD2,
+		Options.OPTION_UIN3, Options.OPTION_PASSWORD3,
+	};
+	
+
+	/**************************************************************************/
+	
+	final public static String emptyString = new String();  
+
+	// Hashtable containing all option key-value pairs
+	static private Hashtable options;
+
+	// Options form
+	static OptionsForm optionsForm;
+	
+	/* Private constructor prevent to create instances of Options class */ 
+	public Options()
+	{
+		// Try to load option values from record store and construct options form
+		try
+		{
+			options = new Hashtable();
+
+			Options.setDefaults();
+			resetLangDependedOpts();
+
+			load();
+
+			if (getBoolean(OPTIONS_LANG_CHANGED))
+			{
+				setBoolean(OPTIONS_LANG_CHANGED, false);
+				resetLangDependedOpts();
+				System.out.println("Options.resetLangDependedOpts()");
+			}
+		}
+		// Use default values if loading option values from record store failed
+		catch (Exception e)
+		{
+			setDefaults();
+			resetLangDependedOpts();
+		}
+
+		ResourceBundle.setCurrUiLanguage(getString(Options.OPTION_UI_LANGUAGE));
+		VirtualList.setFullScreen(getBoolean(Options.OPTION_FULL_SCREEN));
+	}
+
+	/* Set default values
+	   This is done before loading because older saves may not contain all new values */
+	static private void setDefaults()
+	{
+	    setString (Options.OPTION_UIN1, "");
+		setString (Options.OPTION_PASSWORD1, "");
+		setString (Options.OPTION_SRV_HOST,           "icq.jimm.online");
+		setString (Options.OPTION_SRV_PORT,           "5190");
+		setBoolean(Options.OPTION_KEEP_CONN_ALIVE,    true);
+        setString (Options.OPTION_CONN_ALIVE_INVTERV, "120");
+		setInt    (Options.OPTION_CONN_PROP,          0);
+		setInt    (Options.OPTION_CONN_TYPE,          0);
+		setBoolean(Options.OPTION_MD5_LOGIN,          false);
+		setBoolean(Options.OPTION_AUTO_CONNECT,       false);
+		setString (Options.OPTION_HTTP_USER_AGENT,    "unknown");
+		setString (Options.OPTION_HTTP_WAP_PROFILE,   "unknown");
+		setString (Options.OPTION_UI_LANGUAGE,        ResourceBundle.langAvailable[0]);
+		setBoolean(Options.OPTION_DISPLAY_DATE,       false);
+		setInt    (Options.OPTION_CL_SORT_BY,         0);
+		setBoolean(Options.OPTION_CL_HIDE_OFFLINE,    false);
+        setInt    (Options.OPTION_MESS_NOTIF_MODE,    0);
+		setString (Options.OPTION_MESS_NOTIF_FILE,    "message.mp3");
+		setInt    (Options.OPTION_MESS_NOTIF_VOL,     50);
+		setInt    (Options.OPTION_ONLINE_NOTIF_MODE,  0);
+		setString (Options.OPTION_ONLINE_NOTIF_FILE,  "online.mp3");
+		setInt    (Options.OPTION_ONLINE_NOTIF_VOL,   50);
+		setInt	  (Options.OPTION_TYPING_VOL,	 	  50);
+		setString (Options.OPTION_TYPING_FILE,		  "typing.mp3");
+		setInt	  (Options.OPTION_TYPING_MODE,		  0);
+		setInt    (Options.OPTION_LIGHT_TIMEOUT,      5);
+		setBoolean(Options.OPTION_LIGHT_MANUAL,       false);	
+		
+		setBoolean(Options.OPTION_CP1251_HACK,        ResourceBundle.langAvailable[0].equals("RU"));
+		setInt    (Options.OPTION_VIBRATOR,           0);
+		setLong   (Options.OPTION_ONLINE_STATUS,      ContactList.STATUS_ONLINE);
+		setBoolean(Options.OPTION_CHAT_SMALL_FONT,    true);
+		setBoolean(Options.OPTION_USER_GROUPS,        false);
+		setBoolean(Options.OPTION_HISTORY,            false);
+		setInt    (Options.OPTION_COLOR_SCHEME,       CLRSCHHEME_BOW);
+        setBoolean(Options.OPTION_USE_SMILES,         true);
+        setBoolean(Options.OPTION_SHOW_LAST_MESS,     false);
+		setInt    (Options.OPTION_VISIBILITY_ID,      0);
+		setInt    (Options.OPTION_EXT_CLKEY0,         0);
+		
+		setInt    (Options.OPTION_EXT_CLKEYSTAR,      0);
+		
+		
+		setInt    (Options.OPTION_EXT_CLKEY4,         0);
+		setInt    (Options.OPTION_EXT_CLKEY6,         0);
+		setInt    (Options.OPTION_EXT_CLKEYCALL,      HOTKEY_NEWMSG);
+		setInt    (Options.OPTION_EXT_CLKEYPOUND,     HOTKEY_LOCK);
+		setInt    (Options.OPTION_POPUP_WIN2,         0);
+		setBoolean(Options.OPTION_CLASSIC_CHAT,       false);
+		
+		setString (Options.OPTION_UIN2,               emptyString);
+		setString (Options.OPTION_PASSWORD2,          emptyString);
+		setString (Options.OPTION_UIN3,               emptyString);     
+		setString (Options.OPTION_PASSWORD3,          emptyString);
+		setInt    (Options.OPTIONS_CURR_ACCOUNT,      0);
+		
+		setBoolean(Options.OPTION_FULL_SCREEN,        false);
+		
+		/* Offset (in hours) between GMT time and local zone time 
+		   GMT_time + GMT_offset = Local_time */
+		setInt    (Options.OPTIONS_GMT_OFFSET,        0);
+		
+		/* Offset (in hours) between GMT time and phone clock 
+		   Phone_clock + Local_offset = GMT_time */
+		setInt    (Options.OPTIONS_LOCAL_OFFSET,      0);
+		
+		setBoolean(OPTION_FLASH_BACKLIGHT,            true);
+		
+		setBoolean(OPTIONS_LANG_CHANGED,              false);
+	}
+	
+	static public void resetLangDependedOpts()
+	{
+		setString (Options.OPTION_STATUS_MESSAGE,     ResourceBundle.getString("status_message_text"));
+	}
+
+	/* Load option values from record store */
+	static public void load() throws IOException, RecordStoreException
+	{
+		/* Open record store */
+		RecordStore account = RecordStore.openRecordStore("options", false);
+		
+		/* Temporary variables */
+		byte[] buf;
+		ByteArrayInputStream bais;
+		DataInputStream dis;
+		
+		/* Get version info from record store */
+		buf = account.getRecord(1);
+		bais = new ByteArrayInputStream(buf);
+		dis = new DataInputStream(bais);
+	    Options.setDefaults();
+		
+		/* Read all option key-value pairs */
+		buf = account.getRecord(2);
+		bais = new ByteArrayInputStream(buf);
+		dis = new DataInputStream(bais);
+		while (dis.available() > 0)
+		{
+		    int optionKey = dis.readUnsignedByte();
+		    if (optionKey < 64)   /* 0-63 = String */
+		    {
+		        setString(optionKey, dis.readUTF());
+			}
+			else if (optionKey < 128)   /* 64-127 = int */
+			{
+			    setInt(optionKey, dis.readInt());
+			}
+			else if (optionKey < 192)   /* 128-191 = boolean */
+			{
+			    setBoolean(optionKey, dis.readBoolean());
+			}
+			else if (optionKey < 224)   /* 192-223 = long */
+			{
+			    setLong(optionKey, dis.readLong());
+			}
+			else   /* 226-255 = Scrambled String */
+			{
+			    byte[] optionValue = new byte[dis.readUnsignedShort()];
+			    dis.readFully(optionValue);
+			    optionValue = Util.decipherPassword(optionValue);
+			    setString(optionKey, Util.byteArrayToString(optionValue,0,optionValue.length,true));
+			}
+		}
+		
+		/* Close record store */
+		account.closeRecordStore();
+
+		/* Hide offline? */
+		if (getBoolean(Options.OPTION_CL_HIDE_OFFLINE))
+		{
+			setInt(Options.OPTION_CL_SORT_BY, 0);
+		}
+
+	}
+
+
+	/* Save option values to record store */
+	static public void save() throws IOException, RecordStoreException
+	{
+
+		/* Open record store */
+		RecordStore account = RecordStore.openRecordStore("options", true);
+
+		/* Add empty records if necessary */
+		while (account.getNumRecords() < 3)
+		{
+			account.addRecord(null, 0, 0);
+		}
+
+		/* Temporary variables */
+		byte[] buf;
+		ByteArrayOutputStream baos;
+		DataOutputStream dos;
+
+		/* Add version info to record store */
+		baos = new ByteArrayOutputStream();
+		dos = new DataOutputStream(baos);
+		dos.writeUTF(Jimm.VERSION);
+		buf = baos.toByteArray();
+		account.setRecord(1, buf, 0, buf.length);
+
+		/* Save all option key-value pairs */
+		baos = new ByteArrayOutputStream();
+		dos = new DataOutputStream(baos);
+		Enumeration optionKeys = options.keys();
+		while (optionKeys.hasMoreElements())
+		{
+		    int optionKey = ((Integer) optionKeys.nextElement()).intValue();
+		    dos.writeByte(optionKey);
+		    if (optionKey < 64)   /* 0-63 = String */
+		    {
+		        dos.writeUTF(getString(optionKey));
+			}
+			else if (optionKey < 128)   /* 64-127 = int */
+			{
+			    dos.writeInt(getInt(optionKey));
+			}
+			else if (optionKey < 192)   /* 128-191 = boolean */
+			{
+			    dos.writeBoolean(getBoolean(optionKey));
+			}
+			else if (optionKey < 224)   /* 192-223 = long */
+			{
+				dos.writeLong(getLong(optionKey));
+			}
+			else   /* 226-255 = Scrambled String */
+			{
+			    byte[] optionValue = Util.stringToByteArray(getString(optionKey),true);
+				optionValue = Util.decipherPassword(optionValue);
+				dos.writeShort(optionValue.length);
+				dos.write(optionValue);
+			}
+		}
+		buf = baos.toByteArray();
+		account.setRecord(2, buf, 0, buf.length);
+
+		/* Close record store */
+		account.closeRecordStore();
+	}
+
+	static public void safe_save()
+	{
+		try
+		{
+			save();
+		}
+		catch (Exception e)
+		{
+			JimmException.handleException(new JimmException(172, 0, true));
+		}
+	}
+
+	/* Option retrieval methods (no type checking!) */
+	static public synchronized String getString(int key)
+	{
+		switch (key)
+		{
+		case OPTION_UIN:
+		case OPTION_PASSWORD:
+			int index = getInt(Options.OPTIONS_CURR_ACCOUNT)*2;
+			return getString(accountKeys[key == OPTION_UIN ? index : index+1]);
+		}
+		return ((String) options.get(new Integer(key)));
+	}
+	static public synchronized int getInt(int key)
+	{
+	    return (((Integer) options.get(new Integer(key))).intValue());
+	}
+	static public synchronized boolean getBoolean(int key)
+	{
+	    return (((Boolean) options.get(new Integer(key))).booleanValue());
+	}
+	static public synchronized long getLong(int key)
+	{
+	    return (((Long) options.get(new Integer(key))).longValue());
+	}
+
+
+	/* Option setting methods (no type checking!) */
+	static public synchronized void setString(int key, String value)
+	{
+		
+	    options.put(new Integer(key), value);
+	}
+	static public synchronized void setInt(int key, int value)
+	{
+		
+	    options.put(new Integer(key), new Integer(value));
+	}
+	static public synchronized void setBoolean(int key, boolean value)
+	{
+
+	    options.put(new Integer(key), new Boolean(value));
+	}
+	static public synchronized void setLong(int key, long value)
+	{
+		
+	    options.put(new Integer(key), new Long(value));
+	}
+	
+
+	/**************************************************************************/
+	
+	/* Constants for color scheme */
+	private static final int CLRSCHHEME_BOW  = 0; // black on white
+	private static final int CLRSCHHEME_WOB  = 1; // white on black
+	private static final int CLRSCHHEME_WOBL = 2; // white on blue
+	
+	/* Constants for method getSchemeColor to retrieving color from color scheme */ 
+	public static final int  CLRSCHHEME_BACK = 1; // retrieving background color
+	public static final int  CLRSCHHEME_TEXT = 2; // retrieving text color
+	public static final int  CLRSCHHEME_BLUE = 3; // retrieving highlight color
+	public static final int  CLRSCHHEME_CURS = 4; // retrieving curr mess highlight color
+	public static final int  CLRSCHHEME_CAP  = 5; // retrieving caption background color
+	
+	/* Constants for connection type */
+	public static final int  CONN_TYPE_SOCKET = 0;
+	public static final int  CONN_TYPE_HTTP   = 1; 
+	public static final int  CONN_TYPE_PROXY  = 2; 
+
+	final static private int[] colors = 
+	{
+		0xFFFFFF, 0x000000, 0x0000FF, 0x404040, 0xF0F0F0,
+		0x000000, 0xFFFFFF, 0x00FFFF, 0x808080, 0x404040, 
+		0x000080, 0xFFFFFF, 0x00FFFF, 0xFFFFFF, 0x000080
+	};
+	
+	/* Retrieves color value from color scheme */
+	static public int getSchemeColor(int type)
+	{
+		return (colors[getInt(OPTION_COLOR_SCHEME)*5+type-1]);
+	}
+	
+	static public void editOptions()
+	{
+		// Construct option form
+		optionsForm = new OptionsForm();
+		optionsForm.activate();
+	}
+	
+}
+
+/**************************************************************************/
+/**************************************************************************/
+
+
+/* Form for editing option values */
+
+class OptionsForm implements CommandListener, ItemStateListener
+{
+	private boolean lastGroupsUsed, lastHideOffline;
+	private int lastSortMethod, lastColorScheme;
+	private int currentHour;
+	private String lastUILang;
+
+	/* Commands */
+	private Command backCommand;
+	private Command saveCommand;
+	private Command selectCommand;
+
+	/* Options menu */
+	private List optionsMenu;
+    
+    /* Menu event list */
+	private int[] eventList;
+
+	/* Options form */
+	private Form optionsForm;
+	
+    // Static constants for menu actios
+    private static final int OPTIONS_ACCOUNT    = 0;
+    private static final int OPTIONS_NETWORK    = 1;
+    private static final int OPTIONS_INTERFACE  = 3;
+	private static final int OPTIONS_HOTKEYS  	= 4;
+    private static final int OPTIONS_SIGNALING  = 5;
+    
+    private static final int OPTIONS_TIMEZONE   = 7;
+    
+    // Exit has to be biggest element cause it also marks the size
+    private static final int MENU_EXIT          = 8;
+
+	// Options
+    private TextField[] uinTextField;
+    private TextField[] passwordTextField;
+    private TextField srvHostTextField;
+    private TextField srvPortTextField;
+    private TextField httpUserAgendTextField;
+    private TextField httpWAPProfileTextField;
+    private ChoiceGroup keepConnAliveChoiceGroup;
+    private TextField connAliveIntervTextField;
+    private ChoiceGroup connPropChoiceGroup;
+    private ChoiceGroup connTypeChoiceGroup;
+    private ChoiceGroup autoConnectChoiceGroup;
+    private ChoiceGroup uiLanguageChoiceGroup;
+    private ChoiceGroup choiceInterfaceMisc;
+    private ChoiceGroup clSortByChoiceGroup;
+    private ChoiceGroup chrgChat;
+    private ChoiceGroup chrgPopupWin;
+    private ChoiceGroup vibratorChoiceGroup;
+    private ChoiceGroup choiceCurAccount;
+    
+    private ChoiceGroup chsTimeZone;
+    private ChoiceGroup chsCurrTime;
+  
+
+    
+    private ChoiceGroup messageNotificationModeChoiceGroup;
+    private ChoiceGroup onlineNotificationModeChoiceGroup;
+    private ChoiceGroup typingNotificationModeChoiceGroup;
+    private TextField messageNotificationSoundfileTextField;
+    private Gauge messageNotificationSoundVolume;
+    private TextField onlineNotificationSoundfileTextField;
+    private TextField typingNotificationSoundfileTextField;
+    private Gauge onlineNotificationSoundVolume;
+    private Gauge typingNotificationSoundVolume;
+    
+    private ChoiceGroup choiceContactList;
+    private ChoiceGroup colorScheme;
+    private TextField lightTimeout;
+    private ChoiceGroup lightManual;
+	private ChoiceGroup flashBkltChoiceGroup;
+
+	private List keysMenu;
+	private List actionMenu;
+	
+	final private String[] hotkeyActionNames = 
+	{
+		"ext_hotkey_action_none",
+		"info",
+		"send_message",
+		"ext_hotkey_action_onoff",
+		"options_lng",
+		"menu",
+		"keylock",
+		"dc_info",
+		
+		"full_screen",
+	};
+	
+	final private int [] hotkeyActions = 
+	{
+		Options.HOTKEY_NONE,
+		Options.HOTKEY_INFO,
+		Options.HOTKEY_NEWMSG,
+		Options.HOTKEY_ONOFF,
+		Options.HOTKEY_OPTIONS,
+		Options.HOTKEY_MENU,
+		Options.HOTKEY_LOCK,
+		Options.HOTKEY_CLI_INFO,
+		
+		Options.HOTKEY_FULLSCR,
+	};
+	
+	private int[] hotkeyOpts;
+	
+	
+	// Constructor
+	public OptionsForm() throws NullPointerException
+	{
+		// Initialize hotkeys
+		hotkeyOpts = new int[10];
+		keysMenu = new List(ResourceBundle.getString("ext_listhotkeys"), List.IMPLICIT);
+		keysMenu.setCommandListener(this);
+		actionMenu = new List(ResourceBundle.getString("ext_actionhotkeys"), List.EXCLUSIVE);
+		actionMenu.setCommandListener(this);
+		
+		/*************************************************************************/
+		// Initialize commands
+		backCommand = new Command(ResourceBundle.getString("back"), Command.BACK, 2);
+		saveCommand = new Command(ResourceBundle.getString("save"), Command.SCREEN, 1);
+        selectCommand=new Command(ResourceBundle.getString("select"), Command.OK, 1);
+        
+        optionsMenu = new List(ResourceBundle.getString("options_lng"), List.IMPLICIT);
+
+        optionsMenu.addCommand(selectCommand);
+        optionsMenu.addCommand(backCommand);
+        optionsMenu.setCommandListener(this);            
+                
+		// Initialize options form
+		optionsForm = new Form(ResourceBundle.getString("options_lng"));
+		optionsForm.addCommand(saveCommand);
+		optionsForm.addCommand(backCommand);
+		optionsForm.setCommandListener(this);
+		optionsForm.setItemStateListener(this);
+		
+		
+		//System.out.println("OPTIONS_GMT_OFFSET="+Options.getInt(Options.OPTIONS_GMT_OFFSET));
+		//System.out.println("OPTIONS_LOCAL_OFFSET="+Options.getInt(Options.OPTIONS_LOCAL_OFFSET));
+	}
+
+	
+	// Initialize the kist for the Options menu
+	public void initOptionsList()
+	{
+        eventList = new int[MENU_EXIT];
+        while (optionsMenu.size() != 0) optionsMenu.delete(0);
+        
+		eventList[optionsMenu.append(ResourceBundle.getString("options_account"), null)]    = OPTIONS_ACCOUNT;
+        eventList[optionsMenu.append(ResourceBundle.getString("options_network"), null)]    = OPTIONS_NETWORK;
+        eventList[optionsMenu.append(ResourceBundle.getString("options_interface"), null)]  = OPTIONS_INTERFACE;
+	    eventList[optionsMenu.append(ResourceBundle.getString("options_hotkeys"), null)]  = OPTIONS_HOTKEYS;
+        eventList[optionsMenu.append(ResourceBundle.getString("options_signaling"), null)]  = OPTIONS_SIGNALING;
+        
+        eventList[optionsMenu.append(ResourceBundle.getString("time_zone"), null)]      = OPTIONS_TIMEZONE;
+	}
+
+    
+    private String getHotKeyActName(String langStr, int option)
+    {
+    	int optionValue = Options.getInt(option);
+    	for (int i = 0; i < hotkeyActionNames.length; i++)
+    	{
+    		if (hotkeyActions[i] == optionValue) 
+    			return ResourceBundle.getString(langStr)+": "+ResourceBundle.getString(hotkeyActionNames[i]);  
+    	}
+    	return ResourceBundle.getString(langStr)+": <???>";
+    }
+    
+	private void InitHotkeyMenuUI()
+	{
+		int optIdx = 0;
+		
+		int lastItemIndex = keysMenu.getSelectedIndex();
+		while (keysMenu.size() != 0) keysMenu.delete(0);
+		
+		keysMenu.append(getHotKeyActName("ext_clhotkey0", Options.OPTION_EXT_CLKEY0), null);
+		hotkeyOpts[optIdx++] = Options.OPTION_EXT_CLKEY0;
+		
+		keysMenu.append(getHotKeyActName("ext_clhotkey4", Options.OPTION_EXT_CLKEY4), null);
+		hotkeyOpts[optIdx++] = Options.OPTION_EXT_CLKEY4;
+		
+		keysMenu.append(getHotKeyActName("ext_clhotkey6", Options.OPTION_EXT_CLKEY6), null);
+		hotkeyOpts[optIdx++] = Options.OPTION_EXT_CLKEY6;
+		
+		
+		keysMenu.append(getHotKeyActName("ext_clhotkeypound", Options.OPTION_EXT_CLKEYPOUND), null);
+		hotkeyOpts[optIdx++] = Options.OPTION_EXT_CLKEYPOUND;
+		
+		
+		keysMenu.setSelectedIndex(lastItemIndex == -1 ? 0 : lastItemIndex, true);
+		
+		keysMenu.addCommand(saveCommand);
+		//keysMenu.addCommand(backCommand);
+		Jimm.display.setCurrent(keysMenu);			
+	}
+	
+	
+	///////////////////////////////////////////////////////////////////////////
+	
+	// Accounts
+	private Command cmdAddNewAccount = new Command(ResourceBundle.getString("add_new"), Command.ITEM, 3);
+	private Command cmdDeleteAccount = new Command(ResourceBundle.getString("delete", ResourceBundle.FLAG_ELLIPSIS), Command.ITEM, 3);
+	private int currAccount;
+	private Vector uins = new Vector();
+	private Vector passwords = new Vector();
+	private int maxAccountsCount = Options.accountKeys.length/2;
+	
+	private void readAccontsData()
+	{
+		uins.removeAllElements();
+		passwords.removeAllElements();
+		for (int i = 0; i < maxAccountsCount; i++)
+		{
+			int index = i*2;
+			String uin = Options.getString(Options.accountKeys[index]);
+			if ((i != 0) && (uin.length() == 0)) continue;
+			uins.addElement(uin);
+			passwords.addElement( Options.getString(Options.accountKeys[index+1]) );
+		}
+		currAccount = Options.getInt(Options.OPTIONS_CURR_ACCOUNT);
+	}
+	
+	private String checkUin(String value)
+	{
+		if ((value == null) || (value.length() == 0)) return "---";
+		return value;
+	}
+	
+	private void showAccountControls()
+	{
+		int size = uins.size();
+		
+		if (size != 1)
+		{
+			if (choiceCurAccount == null)
+				choiceCurAccount = new ChoiceGroup(ResourceBundle.getString("options_account"), Choice.EXCLUSIVE);
+			choiceCurAccount.deleteAll();
+			
+			for (int i = 0; i < size; i++)
+				choiceCurAccount.append(checkUin((String)uins.elementAt(i)), null);
+			optionsForm.append(choiceCurAccount);
+			if (currAccount >= size) currAccount = size-1;
+			choiceCurAccount.setSelectedIndex(currAccount, true);
+		}
+		
+		uinTextField = new TextField[size];
+		passwordTextField = new TextField[size];
+		for (int i = 0; i < size; i++)
+		{
+			if (size > 1) optionsForm.append("---");
+			
+			String add = (size == 1) ? "" : "-"+(i+1);
+			
+			TextField uinFld = new TextField(ResourceBundle.getString("uin")+add, (String)uins.elementAt(i), 12,TextField.NUMERIC);
+			TextField passFld = new TextField(ResourceBundle.getString("password")+add, (String)passwords.elementAt(i), 32, TextField.PASSWORD);
+			
+		    optionsForm.append(uinFld);
+			optionsForm.append(passFld);
+			
+			uinTextField[i] = uinFld;
+			passwordTextField[i] = passFld; 
+		}
+		
+		if (size != maxAccountsCount) optionsForm.addCommand(cmdAddNewAccount);
+		if (size != 1) optionsForm.addCommand(cmdDeleteAccount);
+	}
+	
+	private void setAccountOptions()
+	{
+		int size = uins.size();
+		String uin, pass;
+		
+		for (int i = 0; i < maxAccountsCount; i++)
+		{
+			if (i < size)
+			{
+				uin  = (String)uins.elementAt(i);
+				pass = (String)passwords.elementAt(i);
+			}
+			else uin = pass = Options.emptyString;
+			
+			Options.setString(Options.accountKeys[2*i],   uin);
+			Options.setString(Options.accountKeys[2*i+1], pass);
+		}
+		
+		if (currAccount >= size) currAccount = size-1;
+		Options.setInt(Options.OPTIONS_CURR_ACCOUNT, currAccount);
+	}
+	
+	private void readAccontsControls()
+	{
+		uins.removeAllElements();
+		passwords.removeAllElements();
+		for (int i = 0; i < uinTextField.length; i++)
+		{
+			uins.addElement(uinTextField[i].getString());
+			passwords.addElement(passwordTextField[i].getString());
+		}
+		
+		currAccount = (choiceCurAccount == null) ? 0 : choiceCurAccount.getSelectedIndex();
+	}
+	
+	public void itemStateChanged(Item item)
+	{
+		if (uinTextField != null)
+		{
+			int accCount = uinTextField.length;
+			if (accCount != 1)
+			{
+				for (int i = 0; i < accCount; i++)
+				{
+					if (uinTextField[i] != item) continue;
+					choiceCurAccount.set(i, checkUin(uinTextField[i].getString()), null);
+					return;
+				}
+			}
+		}
+	}
+	
+	///////////////////////////////////////////////////////////////////////////
+	
+	/* Activate options menu */
+    protected void activate()
+	{
+    	// Store some last values
+    	lastUILang = Options.getString(Options.OPTION_UI_LANGUAGE);
+		lastHideOffline = Options.getBoolean(Options.OPTION_CL_HIDE_OFFLINE);
+		lastGroupsUsed = Options.getBoolean(Options.OPTION_USER_GROUPS);
+        lastSortMethod = Options.getInt(Options.OPTION_CL_SORT_BY);
+		lastColorScheme = Options.getInt(Options.OPTION_COLOR_SCHEME);
+    		
+    	
+		initOptionsList();
+    	optionsMenu.setSelectedIndex(0, true);   // Reset
+		optionsMenu.addCommand(backCommand);
+		Jimm.display.setCurrent(optionsMenu);
+	}
+    
+    final private static int TAG_DELETE_ACCOUNT = 1;
+    
+	/* Command listener */
+	public void commandAction(Command c, Displayable d)
+	{
+		/* Command handler for hotkeys list in Options... */
+		if (d == keysMenu)
+		{
+			if (c == List.SELECT_COMMAND)
+			{
+				while (actionMenu.size() != 0) actionMenu.delete(0);
+				for (int i=0; i < hotkeyActionNames.length; i++)
+					actionMenu.append(ResourceBundle.getString(hotkeyActionNames[i]),null);
+				actionMenu.addCommand(saveCommand);
+				actionMenu.addCommand(backCommand);
+
+				int optValue = Options.getInt(hotkeyOpts[keysMenu.getSelectedIndex()]);
+				for (int selIndex = 0; selIndex < hotkeyActions.length; selIndex++)
+				{
+					if (hotkeyActions[selIndex] == optValue)
+					{
+						actionMenu.setSelectedIndex(selIndex, true);
+						break;
+					}
+				}
+				
+				Jimm.display.setCurrent(actionMenu);
+				return;
+			}
+		}
+		
+		//Command handler for actions list in Hotkeys...
+		if (d == actionMenu)
+		{
+			if (c == saveCommand)
+			{ 
+				Options.setInt
+				(
+					hotkeyOpts[keysMenu.getSelectedIndex()],
+					hotkeyActions[actionMenu.getSelectedIndex()]
+				);
+			}
+			InitHotkeyMenuUI();
+			return;
+		}
+		
+		// Look for select command
+		if ((c == List.SELECT_COMMAND) || (c == selectCommand))
+		{
+			// Delete all items
+			clearForm();
+			
+			// Add elements, depending on selected option menu item
+			switch (eventList[optionsMenu.getSelectedIndex()])
+			{
+				case OPTIONS_ACCOUNT:
+					readAccontsData();
+					showAccountControls();
+					break;
+					
+				case OPTIONS_NETWORK:
+	                // Initialize elements (network section)
+	                srvHostTextField = new TextField(ResourceBundle.getString("server_host"), Options.getString(Options.OPTION_SRV_HOST), 32, TextField.ANY);
+	                srvPortTextField = new TextField(ResourceBundle.getString("server_port"), Options.getString(Options.OPTION_SRV_PORT), 5, TextField.NUMERIC);
+	                
+	                connTypeChoiceGroup = new ChoiceGroup(ResourceBundle.getString("conn_type"), Choice.EXCLUSIVE);
+	                connTypeChoiceGroup.append(ResourceBundle.getString("socket"), null);
+	                connTypeChoiceGroup.append(ResourceBundle.getString("http"), null);
+	                connTypeChoiceGroup.setSelectedIndex(Options.getInt(Options.OPTION_CONN_TYPE)%2,true);
+	                keepConnAliveChoiceGroup = new ChoiceGroup(ResourceBundle.getString("keep_conn_alive"), Choice.MULTIPLE);
+	                keepConnAliveChoiceGroup.append(ResourceBundle.getString("yes"), null);
+	                keepConnAliveChoiceGroup.setSelectedIndex(0, Options.getBoolean(Options.OPTION_KEEP_CONN_ALIVE));
+	                connAliveIntervTextField = new TextField(ResourceBundle.getString("timeout_interv"), Options.getString(Options.OPTION_CONN_ALIVE_INVTERV), 3, TextField.NUMERIC);
+	                connPropChoiceGroup = new ChoiceGroup(ResourceBundle.getString("conn_prop"), Choice.MULTIPLE);
+					connPropChoiceGroup.append(ResourceBundle.getString("md5_login"), null);
+	                connPropChoiceGroup.append(ResourceBundle.getString("async"), null);
+					connPropChoiceGroup.setSelectedIndex(0, Options.getBoolean(Options.OPTION_MD5_LOGIN));
+	                if (Options.getInt(Options.OPTION_CONN_PROP) == 0)
+	                	connPropChoiceGroup.setSelectedIndex(1, false);
+	                else
+	                	connPropChoiceGroup.setSelectedIndex(1, true);
+	                autoConnectChoiceGroup = new ChoiceGroup(ResourceBundle.getString("auto_connect") + "?", Choice.MULTIPLE);
+	                autoConnectChoiceGroup.append(ResourceBundle.getString("yes"), null);
+	                autoConnectChoiceGroup.setSelectedIndex(0, Options.getBoolean(Options.OPTION_AUTO_CONNECT));
+					httpUserAgendTextField = new TextField(ResourceBundle.getString("http_user_agent"), Options.getString(Options.OPTION_HTTP_USER_AGENT), 256, TextField.ANY);
+					httpWAPProfileTextField = new TextField(ResourceBundle.getString("http_wap_profile"), Options.getString(Options.OPTION_HTTP_WAP_PROFILE), 256, TextField.ANY);
+					optionsForm.append(srvHostTextField);
+					optionsForm.append(srvPortTextField);
+					optionsForm.append(connTypeChoiceGroup);
+					optionsForm.append(keepConnAliveChoiceGroup);
+                    optionsForm.append(connAliveIntervTextField);
+					optionsForm.append(autoConnectChoiceGroup);
+					optionsForm.append(connPropChoiceGroup);
+					optionsForm.append(httpUserAgendTextField);
+					optionsForm.append(httpWAPProfileTextField);
+					break;
+				case OPTIONS_INTERFACE:
+	                // Initialize elements (interface section)
+					if (ResourceBundle.langAvailable.length > 1)
+					{
+						uiLanguageChoiceGroup = new ChoiceGroup(ResourceBundle.getString("language"), Choice.EXCLUSIVE);
+						for (int j = 0; j < ResourceBundle.langAvailable.length; j++)
+						{
+							uiLanguageChoiceGroup.append(ResourceBundle.getString("lang_" + ResourceBundle.langAvailable[j]), null);
+							if (ResourceBundle.langAvailable[j].equals(Options.getString(Options.OPTION_UI_LANGUAGE)))
+							{
+								uiLanguageChoiceGroup.setSelectedIndex(j, true);
+							}
+						}
+					}
+					
+					int idx1 = 0;
+					
+	                choiceInterfaceMisc = new ChoiceGroup(ResourceBundle.getString("misc"), Choice.MULTIPLE);
+	                
+	                choiceInterfaceMisc.append(ResourceBundle.getString("display_date"), null);
+	                choiceInterfaceMisc.setSelectedIndex(idx1++, Options.getBoolean(Options.OPTION_DISPLAY_DATE));
+	                
+	                choiceInterfaceMisc.append(ResourceBundle.getString("full_screen"), null);
+	                choiceInterfaceMisc.setSelectedIndex(idx1++, Options.getBoolean(Options.OPTION_FULL_SCREEN));
+	                
+	                clSortByChoiceGroup = new ChoiceGroup(ResourceBundle.getString("sort_by"), Choice.EXCLUSIVE);
+	                clSortByChoiceGroup.append(ResourceBundle.getString("sort_by_status"), null);
+	                clSortByChoiceGroup.append(ResourceBundle.getString("sort_by_name"), null);
+	                clSortByChoiceGroup.setSelectedIndex(Options.getInt(Options.OPTION_CL_SORT_BY), true);
+
+	                choiceContactList = new ChoiceGroup(ResourceBundle.getString("contact_list"), Choice.MULTIPLE);
+	                choiceContactList.append(ResourceBundle.getString("show_user_groups"), null);
+	                choiceContactList.append(ResourceBundle.getString("hide_offline"), null);
+	                choiceContactList.setSelectedIndex(0, Options.getBoolean(Options.OPTION_USER_GROUPS));
+	                choiceContactList.setSelectedIndex(1, Options.getBoolean(Options.OPTION_CL_HIDE_OFFLINE));
+
+	                colorScheme = new ChoiceGroup(ResourceBundle.getString("color_scheme"), Choice.EXCLUSIVE);
+	                colorScheme.append(ResourceBundle.getString("black_on_white"), null);
+	                colorScheme.append(ResourceBundle.getString("white_on_black"), null);
+	                colorScheme.append(ResourceBundle.getString("white_on_blue"), null);
+	                colorScheme.setSelectedIndex(Options.getInt(Options.OPTION_COLOR_SCHEME), true);
+	                
+	                idx1 = 0;
+	                chrgChat = new ChoiceGroup(ResourceBundle.getString("chat"), Choice.MULTIPLE);
+	                chrgChat.append(ResourceBundle.getString("chat_small_font"), null);
+	                chrgChat.setSelectedIndex(idx1++, Options.getBoolean(Options.OPTION_CHAT_SMALL_FONT));
+	                
+	                
+	                
+	                
+	                chrgChat.append(ResourceBundle.getString("cp1251"), null);
+	                chrgChat.setSelectedIndex(idx1++, Options.getBoolean(Options.OPTION_CP1251_HACK));
+	                
+	               
+					lightTimeout = new TextField(ResourceBundle.getString("backlight_timeout"), String.valueOf(Options.getInt(Options.OPTION_LIGHT_TIMEOUT)), 2, TextField.NUMERIC);
+					lightManual = new ChoiceGroup(ResourceBundle.getString("backlight_manual"), Choice.MULTIPLE);
+					lightManual.append(ResourceBundle.getString("yes"), null);
+					lightManual.setSelectedIndex(0, Options.getBoolean(Options.OPTION_LIGHT_MANUAL));
+					
+					if (uiLanguageChoiceGroup != null) optionsForm.append(uiLanguageChoiceGroup);
+					optionsForm.append(choiceInterfaceMisc);
+					optionsForm.append(choiceContactList);
+					optionsForm.append(clSortByChoiceGroup);
+					
+					optionsForm.append(chrgChat);
+					
+					optionsForm.append(colorScheme);
+					optionsForm.append(lightTimeout);
+					optionsForm.append(lightManual);
+					
+					break;
+					
+				case OPTIONS_HOTKEYS:
+					InitHotkeyMenuUI();
+					return;
+                                       
+				case OPTIONS_SIGNALING:
+	            	// Initialize elements (Signaling section)
+
+	                onlineNotificationModeChoiceGroup = new ChoiceGroup(ResourceBundle.getString("onl_notification"), Choice.EXCLUSIVE);
+	                onlineNotificationModeChoiceGroup.append(ResourceBundle.getString("no"), null);
+	                onlineNotificationModeChoiceGroup.append(ResourceBundle.getString("beep"), null);
+	                onlineNotificationModeChoiceGroup.append(ResourceBundle.getString("sound"), null);               
+	                onlineNotificationModeChoiceGroup.setSelectedIndex(Options.getInt(Options.OPTION_ONLINE_NOTIF_MODE),true);
+	                onlineNotificationSoundfileTextField = new TextField(ResourceBundle.getString("onl_sound_file_name"), Options.getString(Options.OPTION_ONLINE_NOTIF_FILE), 32, TextField.ANY);
+	                messageNotificationModeChoiceGroup = new ChoiceGroup(ResourceBundle.getString("message_notification"),Choice.EXCLUSIVE);
+	                messageNotificationModeChoiceGroup.append(ResourceBundle.getString("no"), null);
+	                messageNotificationModeChoiceGroup.append(ResourceBundle.getString("beep"), null);
+	                messageNotificationModeChoiceGroup.append(ResourceBundle.getString("sound"), null);
+	                messageNotificationModeChoiceGroup.setSelectedIndex(Options.getInt(Options.OPTION_MESS_NOTIF_MODE), true);
+	                messageNotificationSoundfileTextField = new TextField(ResourceBundle.getString("msg_sound_file_name"), Options.getString(Options.OPTION_MESS_NOTIF_FILE), 32, TextField.ANY);
+	                messageNotificationSoundVolume = new Gauge(ResourceBundle.getString("volume"), true, 10, Options.getInt(Options.OPTION_MESS_NOTIF_VOL) / 10);
+	                onlineNotificationSoundVolume = new Gauge(ResourceBundle.getString("volume"), true, 10, Options.getInt(Options.OPTION_ONLINE_NOTIF_VOL) / 10);
+	                typingNotificationSoundVolume = new Gauge(ResourceBundle.getString("volume"), true, 10, Options.getInt(Options.OPTION_TYPING_VOL) / 10);
+	                typingNotificationSoundfileTextField = new TextField(ResourceBundle.getString("msg_sound_file_name"), Options.getString(Options.OPTION_TYPING_FILE), 32, TextField.ANY);
+	                typingNotificationModeChoiceGroup = new ChoiceGroup(ResourceBundle.getString("typing_notify"),Choice.EXCLUSIVE);
+	                typingNotificationModeChoiceGroup.append(ResourceBundle.getString("no"), null);
+	                typingNotificationModeChoiceGroup.append(ResourceBundle.getString("typing_display_only"), null);
+	                typingNotificationModeChoiceGroup.append(ResourceBundle.getString("beep"), null);
+	                typingNotificationModeChoiceGroup.append(ResourceBundle.getString("sound"), null);
+	                typingNotificationModeChoiceGroup.setSelectedIndex(Options.getInt(Options.OPTION_TYPING_MODE), true);
+	                
+	                vibratorChoiceGroup = new ChoiceGroup(ResourceBundle.getString("vibration"), Choice.EXCLUSIVE);
+	                vibratorChoiceGroup.append(ResourceBundle.getString("no"), null);
+	                vibratorChoiceGroup.append(ResourceBundle.getString("yes"), null);
+	                vibratorChoiceGroup.append(ResourceBundle.getString("when_locked"), null);
+	                vibratorChoiceGroup.setSelectedIndex(Options.getInt(Options.OPTION_VIBRATOR), true);
+
+					flashBkltChoiceGroup = new ChoiceGroup(ResourceBundle.getString("flash_backight"), Choice.MULTIPLE);
+					flashBkltChoiceGroup.append(ResourceBundle.getString("yes"), null);
+					flashBkltChoiceGroup.setSelectedIndex(0, Options.getBoolean(Options.OPTION_FLASH_BACKLIGHT));
+
+	                chrgPopupWin = new ChoiceGroup(ResourceBundle.getString("popup_win"), Choice.EXCLUSIVE);
+	                chrgPopupWin.append(ResourceBundle.getString("no"),       null);
+	                chrgPopupWin.append(ResourceBundle.getString("pw_forme"), null);
+	                chrgPopupWin.append(ResourceBundle.getString("pw_all"),   null);
+	                chrgPopupWin.setSelectedIndex(Options.getInt(Options.OPTION_POPUP_WIN2), true);
+					
+					optionsForm.append(messageNotificationModeChoiceGroup);
+					
+					optionsForm.append(messageNotificationSoundVolume);
+					optionsForm.append(messageNotificationSoundfileTextField);
+                                            
+					optionsForm.append(vibratorChoiceGroup);
+					if (Jimm.funlight_device_type != -1)
+					{
+						optionsForm.append(flashBkltChoiceGroup);
+					}
+					optionsForm.append(onlineNotificationModeChoiceGroup);
+					
+					optionsForm.append(onlineNotificationSoundVolume);
+					optionsForm.append(onlineNotificationSoundfileTextField);
+					optionsForm.append(typingNotificationModeChoiceGroup);
+					optionsForm.append(typingNotificationSoundVolume);
+					optionsForm.append(typingNotificationSoundfileTextField);
+					
+					optionsForm.append(chrgPopupWin);
+					break;
+		        
+
+					
+				case OPTIONS_TIMEZONE:
+				{
+					int choiceType;
+					
+					choiceType = Choice.POPUP;
+					
+					chsTimeZone = new ChoiceGroup(ResourceBundle.getString("time_zone"), choiceType);
+					for (int i = -12; i <= 13; i++)
+						chsTimeZone.append("GMT" + (i<0 ? "" : "+") + i + ":00", null);
+					chsTimeZone.setSelectedIndex(Options.getInt(Options.OPTIONS_GMT_OFFSET)+12, true);
+					
+					int[] currDateTime = Util.createDate(Util.createCurrentDate(false));
+					chsCurrTime = new ChoiceGroup(ResourceBundle.getString("local_time"), choiceType);
+					int minutes = currDateTime[Util.TIME_MINUTE];
+					int hour = currDateTime[Util.TIME_HOUR];
+					for (int i = 0; i < 24; i++) chsCurrTime.append(i+":"+minutes, null);
+					chsCurrTime.setSelectedIndex(hour, true);
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTime( new Date() );
+					currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+					
+					optionsForm.append(chsTimeZone);
+					optionsForm.append(chsCurrTime);
+		
+					break;
+				}
+			}
+
+			/* Activate options form */
+			Jimm.display.setCurrent(optionsForm);
+		}
+
+		/* Look for back command */
+		else if (c == backCommand)
+		{
+			if (d == optionsForm || d == keysMenu)
+			{
+               optionsMenu.addCommand(backCommand);
+               Jimm.display.setCurrent(optionsMenu);
+           }
+           else
+           {
+        	   Options.optionsForm = null;
+
+               /* Active MM/CL */
+               if (Icq.isConnected())
+               {
+                   ContactList.activate();
+               } else
+               {
+            	   MainMenu.activate();
+               }
+           }
+
+       }
+
+		// Look for save command
+		else if (c == saveCommand)
+		{
+
+			// Save values, depending on selected option menu item
+			switch (eventList[optionsMenu.getSelectedIndex()])
+			{
+				case OPTIONS_ACCOUNT:
+					readAccontsControls();
+					setAccountOptions();
+					break;
+				case OPTIONS_NETWORK:
+					Options.setString(Options.OPTION_SRV_HOST,srvHostTextField.getString());
+					Options.setString(Options.OPTION_SRV_PORT,srvPortTextField.getString());
+					Options.setInt(Options.OPTION_CONN_TYPE,connTypeChoiceGroup.getSelectedIndex());
+					Options.setBoolean(Options.OPTION_KEEP_CONN_ALIVE,keepConnAliveChoiceGroup.isSelected(0));
+					Options.setString(Options.OPTION_CONN_ALIVE_INVTERV,connAliveIntervTextField.getString());
+					Options.setBoolean(Options.OPTION_AUTO_CONNECT,autoConnectChoiceGroup.isSelected(0));
+					Options.setBoolean(Options.OPTION_MD5_LOGIN,connPropChoiceGroup.isSelected(0));
+					if (connPropChoiceGroup.isSelected(1))
+						Options.setInt(Options.OPTION_CONN_PROP,1);
+					else
+						Options.setInt(Options.OPTION_CONN_PROP,0);
+					Options.setString(Options.OPTION_HTTP_USER_AGENT,httpUserAgendTextField.getString());
+					Options.setString(Options.OPTION_HTTP_WAP_PROFILE,httpWAPProfileTextField.getString());
+					
+					break;
+				case OPTIONS_INTERFACE:
+					if (ResourceBundle.langAvailable.length > 1)
+						Options.setString(Options.OPTION_UI_LANGUAGE,ResourceBundle.langAvailable[uiLanguageChoiceGroup.getSelectedIndex()]);
+					
+					int idx = 0;
+					
+					Options.setBoolean(Options.OPTION_DISPLAY_DATE, choiceInterfaceMisc.isSelected(idx++));
+					
+					Options.setBoolean(Options.OPTION_FULL_SCREEN, choiceInterfaceMisc.isSelected(idx++));
+					
+					
+					int newSortMethod = clSortByChoiceGroup.getSelectedIndex();
+					boolean newHideOffline = choiceContactList.isSelected(1);
+					boolean newUseGroups = choiceContactList.isSelected(0);
+					int newColorScheme = colorScheme.getSelectedIndex();
+					
+					Options.setInt(Options.OPTION_CL_SORT_BY, newSortMethod);
+					Options.setBoolean(Options.OPTION_CL_HIDE_OFFLINE, newHideOffline);
+					
+					idx = 0;
+					Options.setBoolean(Options.OPTION_CHAT_SMALL_FONT, chrgChat.isSelected(idx++));
+					
+					
+					
+					
+					Options.setBoolean(Options.OPTION_CP1251_HACK, chrgChat.isSelected(idx++));
+					
+					Options.setBoolean(Options.OPTION_USER_GROUPS, newUseGroups);
+					Options.setInt(Options.OPTION_COLOR_SCHEME, newColorScheme);
+					
+					// Set UI options for real controls
+					ContactList.optionsChanged
+					(
+						(newUseGroups != lastGroupsUsed) || (newHideOffline != lastHideOffline),
+						(newSortMethod != lastSortMethod)
+					);
+					
+					if (lastColorScheme != newColorScheme) JimmUI.setColorScheme();
+					Options.setInt(Options.OPTION_LIGHT_TIMEOUT, Integer.parseInt(lightTimeout.getString()));
+					Options.setBoolean(Options.OPTION_LIGHT_MANUAL, lightManual.isSelected(0));
+					
+					VirtualList.setFullScreen( Options.getBoolean(Options.OPTION_FULL_SCREEN) );
+					
+					if ( !lastUILang.equals(Options.getString(Options.OPTION_UI_LANGUAGE)) )
+					{
+						
+						Options.setBoolean(Options.OPTIONS_LANG_CHANGED, true);
+					}
+					
+					break;
+                				
+				case OPTIONS_SIGNALING:
+					Options.setInt(Options.OPTION_MESS_NOTIF_MODE,messageNotificationModeChoiceGroup.getSelectedIndex());
+					Options.setInt(Options.OPTION_VIBRATOR, vibratorChoiceGroup.getSelectedIndex());
+					Options.setInt(Options.OPTION_ONLINE_NOTIF_MODE,onlineNotificationModeChoiceGroup.getSelectedIndex());
+					Options.setInt(Options.OPTION_TYPING_MODE,typingNotificationModeChoiceGroup.getSelectedIndex());
+					
+					Options.setString(Options.OPTION_MESS_NOTIF_FILE,messageNotificationSoundfileTextField.getString());
+					Options.setInt(Options.OPTION_MESS_NOTIF_VOL,messageNotificationSoundVolume.getValue()*10);
+					Options.setString(Options.OPTION_ONLINE_NOTIF_FILE,onlineNotificationSoundfileTextField.getString());
+					Options.setInt(Options.OPTION_ONLINE_NOTIF_VOL,onlineNotificationSoundVolume.getValue()*10);
+					Options.setString(Options.OPTION_TYPING_FILE,typingNotificationSoundfileTextField.getString());
+					Options.setInt(Options.OPTION_TYPING_VOL,typingNotificationSoundVolume.getValue()*10);
+					Options.setInt(Options.OPTION_POPUP_WIN2, chrgPopupWin.getSelectedIndex()); 
+
+					Options.setBoolean(Options.OPTION_FLASH_BACKLIGHT, flashBkltChoiceGroup.isSelected(0));
+					break;
+			    
+					
+				case OPTIONS_TIMEZONE:
+				{
+					/* Set up time zone*/
+					int timeZone = chsTimeZone.getSelectedIndex()-12;
+					Options.setInt(Options.OPTIONS_GMT_OFFSET, timeZone);
+					
+					/* Translate selected time to GMT */
+					int selHour = chsCurrTime.getSelectedIndex()-timeZone;
+					if (selHour < 0) selHour += 24;
+					if (selHour >= 24) selHour -= 24;
+					
+					/* Calculate diff. between selected GMT time and phone time */ 
+					int localOffset = selHour-currentHour;
+					while (localOffset >= 12) localOffset -= 24;
+					while (localOffset < -12) localOffset += 24;
+					Options.setInt(Options.OPTIONS_LOCAL_OFFSET, localOffset);
+					
+					//System.out.println("timeZone="+timeZone);
+					//System.out.println("localOffset="+localOffset);
+					
+					break;
+				}
+										
+			}
+
+			/* Save options */
+			Options.safe_save();
+
+			/* Activate MM/CL */
+			if (Icq.isConnected())
+			{
+				Options.optionsForm = null;
+				ContactList.activate();
+			}
+			else
+			{
+				activate();
+			}
+		} 
+		
+		/* Accounts */
+		else if (c == cmdAddNewAccount)
+		{
+			readAccontsControls();
+			uins.addElement(Options.emptyString);
+			passwords.addElement(Options.emptyString);
+			clearForm();
+			showAccountControls();
+			return;
+		}
+		else if (c == cmdDeleteAccount)
+		{
+			readAccontsControls();
+			int size = uins.size();
+			String items[] = new String[size];
+			for (int i = 0; i < size; i++) items[i] = checkUin((String)uins.elementAt(i));
+			JimmUI.showSelector("delete", items, this, TAG_DELETE_ACCOUNT, false);
+			return;
+		}
+		else if (JimmUI.getCommandType(c, TAG_DELETE_ACCOUNT) == JimmUI.CMD_OK)
+		{
+			readAccontsControls();
+			int index = JimmUI.getLastSelIndex();
+			uins.removeElementAt(index);
+			passwords.removeElementAt(index);
+			clearForm();
+			showAccountControls();
+			Jimm.display.setCurrent(optionsForm);
+		}
+
+	}
+	
+	private void clearForm()
+	{
+		optionsForm.removeCommand(cmdAddNewAccount);
+		optionsForm.removeCommand(cmdDeleteAccount);
+		optionsForm.deleteAll();
+	}
+	
+} // end of 'class OptionsForm'
+
+
+

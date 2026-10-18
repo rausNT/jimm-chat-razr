@@ -1,0 +1,10 @@
+.deps/
+.build/
+dist/
+release/
+tests/classes/
+tests/stubs/
+__pycache__/
+*.pyc
+.env
+.env.*

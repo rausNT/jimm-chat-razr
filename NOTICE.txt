@@ -1,0 +1,30 @@
+Jimm Chat 0.1.6 — modified version of Jimm 0.5.1
+
+Original Jimm: Copyright (C) 2003-06 Jimm Project.
+Original per-file authorship and copyright notices are retained in src/.
+Upstream: https://sourceforge.net/projects/jimm/files/jimm/0.5.1/
+
+This is an independently modified version, not an official Jimm Project release.
+Changes were prepared on 2026-10-17 and 2026-10-18; see CHANGES.md and the dated
+notices in individual source files. The MIDlet vendor string is retained only
+to preserve the installed suite identity and its saved data when upgrading.
+
+This modified work, including the new chat UI and build scripts, is distributed
+under the GNU General Public License, version 2 or (at your option) any later
+version. You may modify and redistribute it under those terms. There is NO
+WARRANTY, including no implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. The full, unmodified license is in COPYING, also in the JAR.
+
+The release bundle accompanies the executable with its complete corresponding
+source and build instructions (GPLv2 section 3(a)); no future source-offer
+mechanism is used. Keep the matching source archive, COPYING and this notice
+with the executable when passing the bundle on. See BUILD.md.
+
+External compilers and platform API libraries are separately obtained build
+dependencies, not included in the phone JAR. Their exact download locations
+and SHA-256 hashes are recorded in dependencies.json. The compile-only Motorola
+API declarations in api-stubs/ contain no vendor implementation and are not
+included in the phone JAR.
+
+No third-party animated smile pack has been added. Current smile choices are
+text. Original Jimm images/sounds retain upstream provenance; see RESOURCES.md.
