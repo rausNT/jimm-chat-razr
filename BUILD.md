@@ -1,4 +1,4 @@
-# Build and source distribution — Jimm Chat 0.1.8
+# Build and source distribution — Jimm Chat 0.1.9
 
 License for this modified work: GPL-2.0-or-later; see COPYING and NOTICE.txt.
 
@@ -65,3 +65,7 @@ Distribute the whole PUBLIC release bundle, including its matching source ZIP,
 COPYING, NOTICE.txt and CHANGES.md. Recipients can rebuild, modify and redistribute
 under GPL-2.0-or-later. This is the accompanying-source method in GPLv2 section
 3(a), not a promise to supply sources later. No warranty is provided.
+
+## Windows companion
+
+See windows/README.md for the EXE build, synthetic self-tests, and the optional personal.dat format.
