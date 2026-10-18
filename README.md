@@ -36,7 +36,7 @@ The design goal is fewer presses and predictable navigation. This is an ongoing 
 
 Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.7** passed desktop adapter tests including direct native-menu dispatch; the new native menu layout still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
+Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.8** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
 
 ## Build and try
 
@@ -49,7 +49,7 @@ python test.py
 
 The first build downloads four pinned, hash-verified build dependencies. Output: `dist/JimmChat.jar` and `dist/JimmChat.jad`. See [BUILD.md](BUILD.md) for offline builds and dependency provenance.
 
-Create your own account at [Jimm.online](https://jimm.online/). On first launch, enter your UIN and password in the original account settings, save, and connect. Defaults retain `icq.jimm.online:5190`, TCP/socket, no proxy; autoconnect starts disabled. Your mobile network Java/GPRS profile must already work.
+Create your own account at [Jimm.online](https://jimm.online/). On first launch, enter your UIN and password in My account (UIN, masked password, server and port), save, and connect. Defaults retain `icq.jimm.online:5190`, TCP/socket, no proxy; autoconnect starts disabled. Your mobile network Java/GPRS profile must already work.
 
 Transfer the JAR using the phone's normal Bluetooth/Java installation flow. No firmware patch is required. When upgrading the same suite, retain saved data if prompted. The existing suite vendor/name are preserved for data continuity.
 

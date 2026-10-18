@@ -202,7 +202,7 @@ public class Jimm extends MIDlet
 		// set color scheme for all forms
 		JimmUI.setColorScheme();
 		
-		if (Options.getString(Options.OPTION_UIN).length() == 0) { Options.editOptions(); return; }
+		if (Options.getString(Options.OPTION_UIN).length() == 0) { SimpleChat.instance().showAccount(); return; }
 		if (Options.getBoolean(Options.OPTION_AUTO_CONNECT))
         {
 		    // Connect

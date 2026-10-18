@@ -1,3 +1,7 @@
+# 0.1.8 — 2026-10-18
+
+- Editable UIN, masked password, server and port directly in My account for both variants. Existing saved settings override embedded defaults. Validate before save; persist active account slot; disconnect before changes; restore memory values on save failure. Back cancels. Public first launch uses the same form.
+
 # 0.1.7 — 2026-10-18
 
 - Expose Write, Quick reply and Smileys directly in the native Motorola command menu. Remove the nested Menu command in conversations; retain direct left Write and right Back. Regression checks cover direct dispatch and cleanup on return home.

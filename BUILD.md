@@ -1,4 +1,4 @@
-# Build and source distribution — Jimm Chat 0.1.7
+# Build and source distribution — Jimm Chat 0.1.8
 
 License for this modified work: GPL-2.0-or-later; see COPYING and NOTICE.txt.
 
@@ -52,9 +52,8 @@ require publishing your private copy on the internet.
 
 The PUBLIC bundle has empty UIN/password defaults. The server remains
 icq.jimm.online:5190, TCP/Socket, no proxy, with the other common defaults kept.
-Autoconnect is initially off. First launch without a UIN opens the original
-settings: choose Account, enter your own login and save; then connect. If desired,
-enable automatic connection in Network settings. This initial account setup
+Autoconnect is initially off. First launch without a UIN opens My account with editable UIN, masked password,
+server and port. Save your settings, then connect from Application. This initial account setup
 does not contain or retrieve the original owner's credentials.
 
 Public and private binaries differ: each bundle contains its own matching
