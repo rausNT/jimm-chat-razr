@@ -1,3 +1,4 @@
+/* Modified 2026-10-18: expose chat actions directly in native command menu. GPL-2.0-or-later. */
 /* Modified 2026-10-18: editable RMS phrases, numeric picker and caret insertion. GPL-2.0-or-later. */
 /* Modified 2026-10-18: central/menu key opens three chat actions; left Write remains direct. GPL-2.0-or-later. */
 /* Jimm Chat modification notice (GPL-2.0-or-later).
@@ -23,6 +24,7 @@ public final class SimpleChat extends Canvas implements CommandListener {
  final Font bold=Font.getFont(Font.FACE_SYSTEM,Font.STYLE_BOLD,Font.SIZE_SMALL);
  final Command open=new Command("Открыть",Command.STOP,2);
  final Command write=new Command("Написать",Command.STOP,2);
+ final Command chatWrite=new Command("Написать",Command.SCREEN,2);
  final Command menu=new Command("Меню",Command.SCREEN,3);
  final Command back=new Command("Назад",Command.BACK,1);
  final Command send=new Command("Отправить",Command.STOP,2);
@@ -49,7 +51,7 @@ public final class SimpleChat extends Canvas implements CommandListener {
  public static SimpleChat instance(){if(singleton==null)singleton=new SimpleChat();return singleton;}
  public SimpleChat(){loadPhrases();load();setCommandListener(this);buttons();}
  static public void home(){SimpleChat c=instance();c.syncContacts();c.active=null;c.scroll=0;c.buttons();Jimm.display.setCurrent(c);c.repaint();}
- void buttons(){removeCommand(open);removeCommand(write);removeCommand(back);removeCommand(menu);addCommand(active==null?open:write);addCommand(menu);if(active!=null)addCommand(back);}
+ void buttons(){removeCommand(open);removeCommand(write);removeCommand(back);removeCommand(menu);removeCommand(chatWrite);removeCommand(phrases);removeCommand(smiles);if(active==null){addCommand(open);addCommand(menu);}else{addCommand(write);addCommand(back);addCommand(chatWrite);addCommand(phrases);addCommand(smiles);}}
  ThreadData get(String u,String name){for(int i=0;i<chats.size();i++){ThreadData t=(ThreadData)chats.elementAt(i);if(t.uin.equals(u))return t;}ThreadData t=new ThreadData(u,name);chats.addElement(t);return t;}
  static public void received(String u,String from,String text,long time,boolean mine){
   SimpleChat c=instance();synchronized(c){
@@ -116,10 +118,10 @@ public final class SimpleChat extends Canvas implements CommandListener {
   if(d==newChatMenu){if(c==back){Jimm.display.setCurrent(actions);return;}if(newChatMenu.getSelectedIndex()==1){number=new TextBox("UIN собеседника","",10,TextField.NUMERIC);number.addCommand(ok);number.addCommand(back);number.setCommandListener(this);Jimm.display.setCurrent(number);}else{people=ContactList.getContactItems();if(people.length==0){Alert a=new Alert("Контактов пока нет","Выбери «По UIN», чтобы начать переписку.",null,AlertType.INFO);a.setTimeout(Alert.FOREVER);Jimm.display.setCurrent(a,newChatMenu);return;}contacts=new List("Контакты",List.IMPLICIT);for(int i=0;i<people.length;i++)contacts.append(people[i].getStringValue(1),null);contacts.addCommand(back);contacts.setCommandListener(this);Jimm.display.setCurrent(contacts);}return;}
   if(d==appMenu){if(c==back){Jimm.display.setCurrent(actions);return;}switch(appMenu.getSelectedIndex()){
    case 0:if(Icq.isConnected())Icq.disconnect();ContactList.beforeConnect();Icq.connect();break;
-   case 1:helpScreen=new Form("Jimm Chat 0.1.6");helpScreen.append("На основе Jimm 0.5.1. Copyright (C) 2003-06 Jimm Project. Независимая модификация от 17–18.10.2026. GNU GPL v2 или более поздняя. Разрешены изменение и распространение по GPL. БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ. Полный текст — кнопка «Лицензия», исходники — в комплекте этой сборки.");helpScreen.append("Центр/5 — меню сообщения: написать, фразы, смайлики. 1 — фразы, 3 — смайлики. В списке фраз/смайликов цифры 1–9 вставляют у курсора. «Изменить» сохраняет свою фразу. Вверх/вниз — прокрутка. Моя учётка — первый пункт меню. Хранятся последние 40 сообщений на чат, до 96 КБ. Свой пузырёк означает постановку на отправку, не подтверждение доставки.");if(storageError!=null)helpScreen.append(storageError);helpScreen.addCommand(licenseCommand);helpScreen.addCommand(back);helpScreen.setCommandListener(this);Jimm.display.setCurrent(helpScreen);break;
+   case 1:helpScreen=new Form("Jimm Chat 0.1.7");helpScreen.append("На основе Jimm 0.5.1. Copyright (C) 2003-06 Jimm Project. Независимая модификация от 17–18.10.2026. GNU GPL v2 или более поздняя. Разрешены изменение и распространение по GPL. БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ. Полный текст — кнопка «Лицензия», исходники — в комплекте этой сборки.");helpScreen.append("Центр/5 — меню сообщения: написать, фразы, смайлики. 1 — фразы, 3 — смайлики. В списке фраз/смайликов цифры 1–9 вставляют у курсора. «Изменить» сохраняет свою фразу. Вверх/вниз — прокрутка. Моя учётка — первый пункт меню. Хранятся последние 40 сообщений на чат, до 96 КБ. Свой пузырёк означает постановку на отправку, не подтверждение доставки.");if(storageError!=null)helpScreen.append(storageError);helpScreen.addCommand(licenseCommand);helpScreen.addCommand(back);helpScreen.setCommandListener(this);Jimm.display.setCurrent(helpScreen);break;
    case 2:save();try{Jimm.jimm.destroyApp(true);}catch(Exception e){}break;
   }return;}
-  if(c==menu){if(active==null)showMenu();else showChatMenu();return;}if(c==back){home();return;}if(c==write){compose();return;}if(c==open){if(chats.size()==0)showMenu();else openThread((ThreadData)chats.elementAt(selected));}
+  if(c==menu){if(active==null)showMenu();else showChatMenu();return;}if(c==back){home();return;}if(c==write||c==chatWrite){compose();return;}if(d==this&&active!=null&&(c==phrases||c==smiles)){compose();pickQuick(c==smiles);return;}if(c==open){if(chats.size()==0)showMenu();else openThread((ThreadData)chats.elementAt(selected));}
  }
  protected void keyPressed(int key){if(active!=null&&(key==KEY_NUM1||key==KEY_NUM3)){compose();pickQuick(key==KEY_NUM3);return;}int a=0;try{a=getGameAction(key);}catch(Exception e){}if(a==FIRE||key==KEY_NUM5){if(active==null)commandAction(open,this);else showChatMenu();return;}if(a==UP||a==DOWN){int dir=a==UP?-1:1;if(active==null){selected=Math.max(0,Math.min(chats.size()-1,selected+dir));}else scroll=Math.max(0,scroll-dir*normal.getHeight()*2);repaint();}}
  protected void keyRepeated(int key){keyPressed(key);}
