@@ -15,4 +15,4 @@ with zipfile.ZipFile(out/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
         for f in sorted((p/folder).rglob('*')):
             if not f.is_file() or any(part in ['out','__pycache__'] for part in f.relative_to(p).parts):continue
             z.write(f,f.relative_to(p).as_posix())
-    for name in ['tests/make-stubs.py','tests/ChatTest.java']:z.write(p/name,name)
+    for name in ['tests/make-stubs.py','tests/ChatTest.java','tests/RetryPolicyTest.java']:z.write(p/name,name)

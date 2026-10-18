@@ -1,3 +1,4 @@
+/* Modified 2026-10-18: bounded automatic reconnect and packet activity hooks. GPL-2.0-or-later. */
 /* Jimm Chat modification notice (GPL-2.0-or-later).
  * 2026-10-17: mechanically preprocessed upstream source for MOTOROLA, without optional modules; no intentional functional edit.
  * 2026-10-18: added this dated notice; original authors and license retained.
@@ -76,6 +77,8 @@ public class Icq implements Runnable
 
     // Thread
     static volatile Thread thread;
+    static volatile Thread worker;
+    static public boolean workerBusy(){Thread w=worker;return w!=null&&w.isAlive();}
     
     // FLAP sequence number
     static int flapSEQ;
@@ -110,6 +113,7 @@ public class Icq implements Runnable
         {
             // Create new thread and start
             thread = new Thread(_this);
+            worker=thread;
             thread.start();
 
         }
@@ -188,8 +192,11 @@ public class Icq implements Runnable
     }
 
     // Connects to the ICQ network
-    static public synchronized void connect()
+    static public synchronized void connect(){jimm.AutoReconnect.begin();connectInternal(false);}
+    static public synchronized void connectAutomatic(){if(jimm.AutoReconnect.wanted())connectInternal(true);}
+    static private void connectInternal(boolean automatic)
     {
+        if(workerBusy()){jimm.AutoReconnect.failed(123);return;}
         // Connect
         ConnectAction act = new ConnectAction(Options.getString(Options.OPTION_UIN), Options.getString(Options.OPTION_PASSWORD), Options.getString(Options.OPTION_SRV_HOST), Options.getString(Options.OPTION_SRV_PORT));
         try
@@ -204,7 +211,7 @@ public class Icq implements Runnable
 
 		SplashCanvas.setStatusToDraw(jimm.JimmUI.getStatusImageIndex(Options.getLong(Options.OPTION_ONLINE_STATUS)));
         // Start timer
-        SplashCanvas.addTimerTask("connecting", act, false);
+        if(!automatic)SplashCanvas.addTimerTask("connecting", act, false);
         
         lastStatusChangeTime = Util.getDateString(true);
     }
@@ -212,10 +219,10 @@ public class Icq implements Runnable
     /* Disconnects from the ICQ network */
     static public synchronized void disconnect()
     {
-        if (!connected) return;
+        jimm.AutoReconnect.stop();
 
         /* Disconnect */
-		c.close();
+		if(c!=null)c.close();
 		resetServerCon();
         
         
@@ -297,6 +304,7 @@ public class Icq implements Runnable
     static protected synchronized void setConnected()
     {
         connected = true;
+        jimm.AutoReconnect.connected();
     }
     
     // Returns and updates sequence nr
@@ -450,6 +458,7 @@ public class Icq implements Runnable
                     try
                     {
                         if (c.available() > 0) packet = c.getPacket();
+                        if(packet!=null)jimm.AutoReconnect.received();
                     } catch (JimmException e)
                     {
                         JimmException.handleException(e);
@@ -989,8 +998,8 @@ public class Icq implements Runnable
 			catch (JimmException e)
 			{
 
-				// Handle exception
-				JimmException.handleException(e);
+				// Ignore a stale receiver after connection replacement or manual close.
+				if(!inputCloseFlag && this==Icq.c)JimmException.handleException(e);
 
 			}
 			// Catch IO exception
@@ -1213,7 +1222,7 @@ public class Icq implements Runnable
             {
 
                 // Construct and handle exception (only if input close flag has not been set)
-                if (!inputCloseFlag)
+                if (!inputCloseFlag && this == Icq.c)
                 {
                     JimmException f = new JimmException(120, 3);
                     JimmException.handleException(f);
@@ -1231,15 +1240,15 @@ public class Icq implements Runnable
             catch (JimmException e)
             {
 
-                // Handle exception
-                JimmException.handleException(e);
+                // Ignore a stale receiver after connection replacement or manual close.
+                if(!inputCloseFlag && this==Icq.c)JimmException.handleException(e);
 
             }
             // Catch IO exception
             catch (IOException e)
             {
             	// Construct and handle exception (only if input close flag has not been set)
-                if (!inputCloseFlag)
+                if (!inputCloseFlag && this == Icq.c)
                 {
                 	JimmException f = new JimmException(120, 1);
                     JimmException.handleException(f);
