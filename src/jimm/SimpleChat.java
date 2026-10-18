@@ -24,6 +24,7 @@ public final class SimpleChat extends Canvas implements CommandListener {
  final Font normal=Font.getFont(Font.FACE_SYSTEM,Font.STYLE_PLAIN,Font.SIZE_SMALL);
  final Font bold=Font.getFont(Font.FACE_SYSTEM,Font.STYLE_BOLD,Font.SIZE_SMALL);
  final Command open=new Command("Открыть",Command.STOP,2);
+ final Command connectNow=new Command("Подключиться",Command.STOP,1);
  final Command write=new Command("Написать",Command.STOP,2);
  final Command chatWrite=new Command("Написать",Command.SCREEN,2);
  final Command menu=new Command("Меню",Command.SCREEN,3);
@@ -33,6 +34,7 @@ public final class SimpleChat extends Canvas implements CommandListener {
  final Command phrases=new Command("Быстрый ответ",Command.SCREEN,3);
  final Command smiles=new Command("Смайлики",Command.SCREEN,4);
  static final String[] PHRASES={"Да","Нет","Не знаю","Возможно","Ты тут?","Привет!","Спасибо!","Сейчас занят","Напишу позже"};
+ static final String[][] STARTER_CHATS={{"340314","Jimm Online"},{"11112","DeepSeek"},{"11114","Channels"},{"11116","Walls"},{"11111","OpenAI"}};
  static final String[] SMILES={":)",";)",":D",":(",":P",":O",":/",":'(","<3"};
  static final String[] SMILE_LABELS={":)  Улыбка",";)  Подмигнуть",":D  Смех",":(  Грусть",":P  Язык",":O  Удивление",":/  Сомнение",":'(  Слёзы","<3  Сердце"};
  QuickPicker quickPicker;boolean pickingSmiles;
@@ -43,7 +45,8 @@ public final class SimpleChat extends Canvas implements CommandListener {
  final Command savePhrase=new Command("Сохранить",Command.STOP,2);
  TextBox editor,number;
  List actions,contacts,newChatMenu,appMenu,chatMenu;
- Form account,helpScreen,licenseScreen;
+ Form account,helpScreen,licenseScreen,diagnosticsScreen;
+ final Command diagnosticsCommand=new Command("Диагностика",Command.SCREEN,2);
  TextField accountUin,accountPassword,accountHost,accountPort;
  final Command saveAccount=new Command("Сохранить",Command.STOP,2);
  final Command licenseCommand=new Command("Лицензия",Command.SCREEN,3);
@@ -52,10 +55,12 @@ public final class SimpleChat extends Canvas implements CommandListener {
  static class Msg {String text; boolean mine; long time; Msg(String s,boolean m,long t){text=s;mine=m;time=t;}}
  static class ThreadData {String uin,name,draft="";int unread;Vector messages=new Vector();ThreadData(String u,String n){uin=u;name=n;}}
  public static SimpleChat instance(){if(singleton==null)singleton=new SimpleChat();return singleton;}
- public SimpleChat(){loadPhrases();load();setCommandListener(this);buttons();}
+ public SimpleChat(){loadPhrases();load();seedStarterChats();setCommandListener(this);buttons();}
  static public void home(){SimpleChat c=instance();c.syncContacts();c.active=null;c.scroll=0;c.buttons();Jimm.display.setCurrent(c);c.repaint();}
- void buttons(){removeCommand(open);removeCommand(write);removeCommand(back);removeCommand(menu);removeCommand(chatWrite);removeCommand(phrases);removeCommand(smiles);if(active==null){addCommand(open);addCommand(menu);}else{addCommand(write);addCommand(back);addCommand(chatWrite);addCommand(phrases);addCommand(smiles);}}
+ void buttons(){removeCommand(open);removeCommand(connectNow);removeCommand(write);removeCommand(back);removeCommand(menu);removeCommand(chatWrite);removeCommand(phrases);removeCommand(smiles);if(active==null){if(!Icq.isConnected())addCommand(connectNow);addCommand(open);addCommand(menu);}else{addCommand(write);addCommand(back);addCommand(chatWrite);addCommand(phrases);addCommand(smiles);}}
+ void connectNow(){if(Icq.isConnected())Icq.disconnect();ContactList.beforeConnect();Icq.connect();}
  ThreadData get(String u,String name){for(int i=0;i<chats.size();i++){ThreadData t=(ThreadData)chats.elementAt(i);if(t.uin.equals(u))return t;}ThreadData t=new ThreadData(u,name);chats.addElement(t);return t;}
+ void seedStarterChats(){boolean changed=false;for(int i=0;i<STARTER_CHATS.length;i++){int before=chats.size();get(STARTER_CHATS[i][0],STARTER_CHATS[i][1]);if(chats.size()!=before)changed=true;}if(changed)save();}
  static public void received(String u,String from,String text,long time,boolean mine){
   SimpleChat c=instance();synchronized(c){
    ContactListContactItem person=ContactList.getItembyUIN(u);
@@ -106,7 +111,8 @@ public final class SimpleChat extends Canvas implements CommandListener {
  public void commandAction(Command c,Displayable d){
   if(d==chatMenu){if(c==back){Jimm.display.setCurrent(this);return;}int choice=chatMenu.getSelectedIndex();compose();if(choice==1)pickQuick(false);else if(choice==2)pickQuick(true);return;}
   if(d==licenseScreen){if(c==back)Jimm.display.setCurrent(helpScreen);return;}
-  if(d==helpScreen){if(c==back)Jimm.display.setCurrent(appMenu);else if(c==licenseCommand)showLicense();return;}
+  if(d==diagnosticsScreen){Jimm.display.setCurrent(helpScreen);return;}
+  if(d==helpScreen){if(c==back)Jimm.display.setCurrent(appMenu);else if(c==licenseCommand)showLicense();else if(c==diagnosticsCommand){diagnosticsScreen=new Form("Сеть");diagnosticsScreen.append(ConnectionTrace.report());diagnosticsScreen.addCommand(back);diagnosticsScreen.setCommandListener(this);Jimm.display.setCurrent(diagnosticsScreen);}return;}
   if(d==phraseEditor){if(c==back){Jimm.display.setCurrent(quickPicker);return;}if(c==savePhrase){String value=phraseEditor.getString().trim();if(value.length()==0){Alert a=new Alert("Пустая фраза","Введи текст фразы.",null,AlertType.INFO);a.setTimeout(Alert.FOREVER);Jimm.display.setCurrent(a,phraseEditor);return;}if(storePhrase(quickPicker.selected,value))Jimm.display.setCurrent(quickPicker);}return;}
   if(d==quickPicker){if(c==editPhrase&&!pickingSmiles){phraseEditor=new TextBox("Фраза "+(quickPicker.selected+1),ownPhrases[quickPicker.selected],160,TextField.ANY);phraseEditor.addCommand(savePhrase);phraseEditor.addCommand(back);phraseEditor.setCommandListener(this);Jimm.display.setCurrent(phraseEditor);return;}if(c==back){Jimm.display.setCurrent(editor);return;}int i=quickPicker.getSelectedIndex();String[] choices=pickingSmiles?SMILES:ownPhrases;if(i>=0&&i<choices.length)insertQuick(choices[i]);return;}
   if(d==editor){if(c==phrases){pickQuick(false);return;}if(c==smiles){pickQuick(true);return;}active.draft=editor.getString();save();if(c==back){Jimm.display.setCurrent(this);return;}
@@ -123,11 +129,11 @@ public final class SimpleChat extends Canvas implements CommandListener {
   if(d==actions){if(c==back){Jimm.display.setCurrent(this);return;}switch(actions.getSelectedIndex()){case 0:showAccount();break;case 1:showNewChat();break;case 2:showAppMenu();break;}return;}
   if(d==newChatMenu){if(c==back){Jimm.display.setCurrent(actions);return;}if(newChatMenu.getSelectedIndex()==1){number=new TextBox("UIN собеседника","",10,TextField.NUMERIC);number.addCommand(ok);number.addCommand(back);number.setCommandListener(this);Jimm.display.setCurrent(number);}else{people=ContactList.getContactItems();if(people.length==0){Alert a=new Alert("Контактов пока нет","Выбери «По UIN», чтобы начать переписку.",null,AlertType.INFO);a.setTimeout(Alert.FOREVER);Jimm.display.setCurrent(a,newChatMenu);return;}contacts=new List("Контакты",List.IMPLICIT);for(int i=0;i<people.length;i++)contacts.append(people[i].getStringValue(1),null);contacts.addCommand(back);contacts.setCommandListener(this);Jimm.display.setCurrent(contacts);}return;}
   if(d==appMenu){if(c==back){Jimm.display.setCurrent(actions);return;}switch(appMenu.getSelectedIndex()){
-   case 0:if(Icq.isConnected())Icq.disconnect();ContactList.beforeConnect();Icq.connect();break;
-   case 1:helpScreen=new Form("Jimm Chat 0.1.9");helpScreen.append("На основе Jimm 0.5.1. Copyright (C) 2003-06 Jimm Project. Независимая модификация от 17–18.10.2026. GNU GPL v2 или более поздняя. Разрешены изменение и распространение по GPL. БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ. Полный текст — кнопка «Лицензия», исходники — в комплекте этой сборки.");helpScreen.append("Центр/5 — меню сообщения: написать, фразы, смайлики. 1 — фразы, 3 — смайлики. В списке фраз/смайликов цифры 1–9 вставляют у курсора. «Изменить» сохраняет свою фразу. Вверх/вниз — прокрутка. Моя учётка — первый пункт меню. Хранятся последние 40 сообщений на чат, до 96 КБ. Свой пузырёк означает постановку на отправку, не подтверждение доставки.");if(storageError!=null)helpScreen.append(storageError);helpScreen.addCommand(licenseCommand);helpScreen.addCommand(back);helpScreen.setCommandListener(this);Jimm.display.setCurrent(helpScreen);break;
+   case 0:connectNow();break;
+   case 1:helpScreen=new Form("Jimm Chat 0.1.12");helpScreen.append("На основе Jimm 0.5.1. Copyright (C) 2003-06 Jimm Project. Независимая модификация от 17–18.10.2026. GNU GPL v2 или более поздняя. Разрешены изменение и распространение по GPL. БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ. Полный текст — кнопка «Лицензия», исходники — в комплекте этой сборки.");helpScreen.append("При запуске с заполненной учёткой Jimm проверяет доступ к сети обычным подключением. Если Motorola спрашивает, системный запрос появляется в этот момент. Офлайн: левая кнопка «Подключиться» повторяет проверку. Центр/5 — меню сообщения: написать, фразы, смайлики. 1 — фразы, 3 — смайлики. В списке фраз/смайликов цифры 1–9 вставляют у курсора. «Изменить» сохраняет свою фразу. Вверх/вниз — прокрутка. Моя учётка — первый пункт меню. Хранятся последние 40 сообщений на чат, до 96 КБ. Свой пузырёк означает постановку на отправку, не подтверждение доставки.");if(storageError!=null)helpScreen.append(storageError);helpScreen.addCommand(diagnosticsCommand);helpScreen.addCommand(licenseCommand);helpScreen.addCommand(back);helpScreen.setCommandListener(this);Jimm.display.setCurrent(helpScreen);break;
    case 2:save();try{Jimm.jimm.destroyApp(true);}catch(Exception e){}break;
   }return;}
-  if(c==menu){if(active==null)showMenu();else showChatMenu();return;}if(c==back){home();return;}if(c==write||c==chatWrite){compose();return;}if(d==this&&active!=null&&(c==phrases||c==smiles)){compose();pickQuick(c==smiles);return;}if(c==open){if(chats.size()==0)showMenu();else openThread((ThreadData)chats.elementAt(selected));}
+  if(c==connectNow&&d==this){connectNow();return;}if(c==menu){if(active==null)showMenu();else showChatMenu();return;}if(c==back){home();return;}if(c==write||c==chatWrite){compose();return;}if(d==this&&active!=null&&(c==phrases||c==smiles)){compose();pickQuick(c==smiles);return;}if(c==open){if(chats.size()==0)showMenu();else openThread((ThreadData)chats.elementAt(selected));}
  }
  protected void keyPressed(int key){if(active!=null&&(key==KEY_NUM1||key==KEY_NUM3)){compose();pickQuick(key==KEY_NUM3);return;}int a=0;try{a=getGameAction(key);}catch(Exception e){}if(a==FIRE||key==KEY_NUM5){if(active==null)commandAction(open,this);else showChatMenu();return;}if(a==UP||a==DOWN){int dir=a==UP?-1:1;if(active==null){selected=Math.max(0,Math.min(chats.size()-1,selected+dir));}else scroll=Math.max(0,scroll-dir*normal.getHeight()*2);repaint();}}
  protected void keyRepeated(int key){keyPressed(key);}

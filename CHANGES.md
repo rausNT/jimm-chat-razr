@@ -1,3 +1,12 @@
+## 0.1.12 — 2026-10-18
+
+Based on 0.1.9, with startup connection, starter chats and numeric connection diagnostics. No retry or wire-protocol changes. Connection screen shows stage, elapsed seconds and received packet count. Help → Diagnostics holds a bounded in-memory event history; no credentials or message payloads. The owner reported normal operation on the test Motorola RAZR V3i (identified as V3ire). This is limited hands-on feedback, not a compatibility guarantee.
+
+- The offline chat list has a direct **Подключиться** softkey. It initiates the normal socket connection, which is the operation that causes a Motorola permission prompt when the phone policy is set to ask.
+- A denied socket permission is caught as error 173 with an explanation, instead of letting a `SecurityException` leave the connection flow undefined.
+- On every fresh launch with an account, Jimm begins the normal connection flow. This performs the requested permission and connection check.
+- Restore local starter chats for Jimm Online, DeepSeek, Channels, Walls and OpenAI. They are real Jimm.online UINs without fabricated messages; a server roster may rename them after login.
+
 # 0.1.9 — 2026-10-18
 
 - Optional personal.dat resource provides installer-prepared initial UIN, password, host and port. Existing RMS settings retain precedence. Invalid configuration falls back to ordinary defaults. Windows companion personalizes the resource without recompiling Java.

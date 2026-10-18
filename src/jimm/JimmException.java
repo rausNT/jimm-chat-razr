@@ -68,7 +68,8 @@ public class JimmException extends Exception
 	public JimmException(int errCode, int extErrCode)
 	{
 		super(JimmException.getErrDesc(errCode, extErrCode));
-		this.critical = true;
+		ConnectionTrace.event(3,errCode * 100 + extErrCode);
+        this.critical = true;
 		this.displayMsg = true;
 	}
 

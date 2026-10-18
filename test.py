@@ -4,6 +4,8 @@ import subprocess,sys,os,shutil
 p=Path(__file__).resolve().parent;os.chdir(p)
 jdk=Path(os.environ['JAVA_HOME'])/'bin' if os.environ.get('JAVA_HOME') else None
 def tool(n):return str(jdk/(n+('.exe' if os.name=='nt' else ''))) if jdk else shutil.which(n)
+subprocess.run([tool('javac'),'-encoding','UTF-8','-d','tests/trace-classes','src/jimm/ConnectionTrace.java','tests/ConnectionTraceTest.java'],check=True)
+subprocess.run([tool('java'),'-cp','tests/trace-classes','jimm.ConnectionTraceTest'],check=True)
 subprocess.run([sys.executable,'tests/make-stubs.py'],check=True)
 sources=[str(f) for f in sorted((p/'tests/stubs').rglob('*.java'))]+[str(p/'tests/ChatTest.java')]
 subprocess.run([tool('javac'),'-encoding','UTF-8','-cp',os.pathsep.join(['.build/classes','.deps/midpapi20-2.0.4.jar']),'-d','tests/classes']+sources,check=True)
