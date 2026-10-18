@@ -1,3 +1,7 @@
+# 0.1.9 — 2026-10-18
+
+- Optional personal.dat resource provides installer-prepared initial UIN, password, host and port. Existing RMS settings retain precedence. Invalid configuration falls back to ordinary defaults. Windows companion personalizes the resource without recompiling Java.
+
 # 0.1.8 — 2026-10-18
 
 - Editable UIN, masked password, server and port directly in My account for both variants. Existing saved settings override embedded defaults. Validate before save; persist active account slot; disconnect before changes; restore memory values on save failure. Back cancels. Public first launch uses the same form.
@@ -37,3 +41,5 @@ SimpleChat.java: central FIRE/5 and the chat menu command open exactly three act
 - tests/ChatTest.java and make-stubs.py: caret, numeric selection, phrase persistence, cancellation and independent record stores covered.
 - Version, attribution and matching source bundles updated. Original copyright and GPL-2.0-or-later retained.
 
+
+- Windows companion: editable prefilled server/port, explicit paired-device selection, in-memory personalization, cancelable RFCOMM/OBEX transfer, and private export with matching source and JAD size. No automatic account registration or pairing.

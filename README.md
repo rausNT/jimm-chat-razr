@@ -36,7 +36,11 @@ The design goal is fewer presses and predictable navigation. This is an ongoing 
 
 Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.8** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
+Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.9** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
+
+## Windows setup companion
+
+The portable Windows companion builds a personalized JAR in memory and sends it to an explicitly selected paired Bluetooth phone. Server `icq.jimm.online` and port `5190` are prefilled and editable. UIN and password are entered by the user. No Java/Python installation is needed to run the EXE. See [Windows setup](windows/README.md). ZIP/configuration and form tests pass; end-to-end transfer from this new EXE still needs hardware verification.
 
 ## Build and try
 

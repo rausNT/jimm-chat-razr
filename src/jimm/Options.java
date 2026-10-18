@@ -273,6 +273,11 @@ public class Options
 		setBoolean(OPTION_FLASH_BACKLIGHT,            true);
 		
 		setBoolean(OPTIONS_LANG_CHANGED,              false);
+        // 2026-10-18: optional installer defaults; saved RMS settings load afterwards.
+        try {
+            String[] personal=PersonalDefaults.read(Options.class.getResourceAsStream("/personal.dat"));
+            if(personal!=null){setString(OPTION_UIN1,personal[0]);setString(OPTION_PASSWORD1,personal[1]);setString(OPTION_SRV_HOST,personal[2]);setString(OPTION_SRV_PORT,personal[3]);}
+        } catch (IOException invalidPersonalDefaults) { /* Keep ordinary defaults. */ }
 	}
 	
 	static public void resetLangDependedOpts()
