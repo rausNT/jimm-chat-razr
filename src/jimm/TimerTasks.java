@@ -114,7 +114,8 @@ public class TimerTasks extends TimerTask implements javax.microedition.lcdui.Co
 			return;
 		}
 
-		SplashCanvas.setProgress(action.getProgress());
+		if(action instanceof jimm.comm.ConnectAction){ConnectionTrace.progress(action.getProgress());SplashCanvas.setMessage(ConnectionTrace.status());}
+        SplashCanvas.setProgress(action.getProgress());
 		if (action.isCompleted())
 		{
 			cancel();

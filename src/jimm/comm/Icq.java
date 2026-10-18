@@ -190,6 +190,7 @@ public class Icq implements Runnable
     // Connects to the ICQ network
     static public synchronized void connect()
     {
+        jimm.ConnectionTrace.begin();
         // Connect
         ConnectAction act = new ConnectAction(Options.getString(Options.OPTION_UIN), Options.getString(Options.OPTION_PASSWORD), Options.getString(Options.OPTION_SRV_HOST), Options.getString(Options.OPTION_SRV_PORT));
         try
@@ -309,7 +310,8 @@ public class Icq implements Runnable
     // Resets the comm. subsystem
     static public synchronized void resetServerCon()
     {    	
-    	// Stop thread
+        jimm.ConnectionTrace.event(6,0);
+        // Stop thread
         thread = null;
         
         // Wake up thread in order to complete
@@ -1041,7 +1043,8 @@ public class Icq implements Runnable
 				is = sc.openInputStream();
 				os = sc.openOutputStream();
 
-				inputCloseFlag = false;
+				jimm.ConnectionTrace.event(4,0);
+                inputCloseFlag = false;
 				rcvThread = new Thread(this);
 				rcvThread.start();
 				nextSequence = (new Random()).nextInt() % 0x0FFF;
@@ -1168,10 +1171,10 @@ public class Icq implements Runnable
                     do
                     {
                         bRead = is.read(flapHeader, bReadSum, flapHeader.length - bReadSum);
-                        if (bRead == -1) break;
+                        if (bRead == -1) { jimm.ConnectionTrace.event(5,0); break; }
                         bReadSum += bRead;
                     } while (bReadSum < flapHeader.length);
-                    if (bRead == -1) break;
+                    if (bRead == -1) { jimm.ConnectionTrace.event(5,0); break; }
 
                     // Verify flap header
                     if (Util.getByte(flapHeader, 0) != 0x2A) { throw (new JimmException(124, 0)); }
@@ -1184,11 +1187,12 @@ public class Icq implements Runnable
                     do
                     {
                         bRead = is.read(flapData, bReadSum, flapData.length - bReadSum);
-                        if (bRead == -1) break;
+                        if (bRead == -1) { jimm.ConnectionTrace.event(5,0); break; }
                         bReadSum += bRead;
                     } while (bReadSum < flapData.length);
-                    if (bRead == -1) break;
+                    if (bRead == -1) { jimm.ConnectionTrace.event(5,0); break; }
 
+                    jimm.ConnectionTrace.packet();
                     // Merge flap header and data and count the data
                     rcvdPacket = new byte[flapHeader.length + flapData.length];
                     System.arraycopy(flapHeader, 0, rcvdPacket, 0, flapHeader.length);

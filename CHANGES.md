@@ -1,3 +1,7 @@
+## 0.1.10 diagnostic — LOCAL, NOT RELEASED
+
+Based on 0.1.9, with fixed numeric connection diagnostics only. No retry or wire-protocol changes. Connection screen shows stage, elapsed seconds and received packet count. Help → Diagnostics holds a bounded in-memory event history; no credentials or message payloads. Not a connection fix.
+
 # 0.1.9 — 2026-10-18
 
 - Optional personal.dat resource provides installer-prepared initial UIN, password, host and port. Existing RMS settings retain precedence. Invalid configuration falls back to ordinary defaults. Windows companion personalizes the resource without recompiling Java.

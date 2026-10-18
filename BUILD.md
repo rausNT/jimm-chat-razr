@@ -1,4 +1,4 @@
-# Build and source distribution — Jimm Chat 0.1.9
+# Build and source distribution — Jimm Chat 0.1.10
 
 License for this modified work: GPL-2.0-or-later; see COPYING and NOTICE.txt.
 
