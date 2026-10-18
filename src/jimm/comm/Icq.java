@@ -1053,6 +1053,12 @@ public class Icq implements Runnable
 			} catch (ConnectionNotFoundException e)
 			{
 				throw (new JimmException(121, 0));
+			} catch (SecurityException e)
+			{
+				// On a MIDP phone this is the only portable signal that the
+				// platform declined the socket permission request.
+				jimm.ConnectionTrace.event(7, 0);
+				throw (new JimmException(173, 0));
 			} catch (IllegalArgumentException e)
 			{
 				throw (new JimmException(122, 0));

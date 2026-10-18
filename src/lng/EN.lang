@@ -349,6 +349,7 @@
   "error_170"                   "Possibly not enough heap memory available (#170.EXT)"
   "error_171"                   "Could not fetch meta info (#171.EXT)"
   "error_172"                   "Error while saving the options (#172.EXT)"        
+  "error_173"                   "Java network access was denied. Allow socket access in the application permissions (#173.EXT)"
 
   
   // HTTP Connection erros

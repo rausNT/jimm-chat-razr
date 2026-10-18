@@ -11,5 +11,5 @@ public final class ConnectionTrace {
  public static synchronized void progress(int value){if(progress!=value){progress=value;event(2,value);}}
  private static long seconds(){return started==0?0:Math.max(0,(System.currentTimeMillis()-started)/1000);}
  public static synchronized String status(){return progress+"% "+seconds()+"s RX:"+packets;}
- public static synchronized String report(){StringBuffer b=new StringBuffer("Connection diagnostics\n");b.append(status());b.append("\n1=start 2=stage 3=error 4=socket-open 5=EOF 6=reset\n");for(int i=0;i<count;i++){b.append(rows[(next-count+i+rows.length)%rows.length]);b.append('\n');}return b.toString();}
+ public static synchronized String report(){StringBuffer b=new StringBuffer("Connection diagnostics\n");b.append(status());b.append("\n1=start 2=stage 3=error 4=socket-open 5=EOF 6=reset 7=permission\n");for(int i=0;i<count;i++){b.append(rows[(next-count+i+rows.length)%rows.length]);b.append('\n');}return b.toString();}
 }

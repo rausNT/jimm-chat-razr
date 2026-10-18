@@ -1,6 +1,9 @@
-## 0.1.10 diagnostic — LOCAL, NOT RELEASED
+## 0.1.11 permission-aware diagnostic — LOCAL, NOT RELEASED
 
 Based on 0.1.9, with fixed numeric connection diagnostics only. No retry or wire-protocol changes. Connection screen shows stage, elapsed seconds and received packet count. Help → Diagnostics holds a bounded in-memory event history; no credentials or message payloads. Not a connection fix.
+
+- The offline chat list has a direct **Подключиться** softkey. It initiates the normal socket connection, which is the operation that causes a Motorola permission prompt when the phone policy is set to ask.
+- A denied socket permission is caught as error 173 with an explanation, instead of letting a `SecurityException` leave the connection flow undefined.
 
 # 0.1.9 — 2026-10-18
 

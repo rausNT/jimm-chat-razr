@@ -27,7 +27,9 @@ public class ChatTest {
   check(SimpleChat.wrap("длинноесловобезпробелов1234567890123456789",c.normal,40).size()>1,"Long words wrap");
   c.openThread((SimpleChat.ThreadData)c.chats.elementAt(0));c.scroll=100000;c.paint(new Graphics(new BufferedImage(176,200,1).createGraphics(),176,200));check(c.scroll<100000,"Scroll bounded");
   check(c.commands.contains(c.write)&&!c.commands.contains(c.open),"Single chat primary command");
-  SimpleChat.home();check(c.commands.contains(c.open)&&!c.commands.contains(c.write),"Single home primary command");
+  Icq.online=false;SimpleChat.home();check(c.commands.contains(c.open)&&c.commands.contains(c.connectNow)&&!c.commands.contains(c.write),"Offline home exposes direct Connect");
+  int connectsBefore=Icq.connects;c.commandAction(c.connectNow,c);check(Icq.connects==connectsBefore+1&&Icq.online,"Direct Connect starts the platform network request");
+  SimpleChat.home();check(c.commands.contains(c.open)&&!c.commands.contains(c.connectNow),"Online home hides Connect");
   check(RecordStore.data.length<=98304,"Archive bounded");
   ContactList.items=new ContactListContactItem[]{new ContactListContactItem(0,0,"11111","Jimm Online",false,true),new ContactListContactItem(0,0,"11112","DeepSeek",false,true)};
   int before=c.chats.size(),sent=Icq.sends;SimpleChat.home();check(c.chats.size()==before+2,"Roster contacts appear without messages");
