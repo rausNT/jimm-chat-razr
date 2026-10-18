@@ -1,4 +1,4 @@
-Jimm Chat 0.2.0 — modified version of Jimm 0.5.1
+Jimm Chat 0.2.1 — modified version of Jimm 0.5.1
 
 Original Jimm: Copyright (C) 2003-06 Jimm Project.
 Original per-file authorship and copyright notices are retained in src/.

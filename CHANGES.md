@@ -1,3 +1,11 @@
+## 0.2.1 — 2026-10-18
+
+- Direct Connect/Cancel left softkey on list and chat screens.
+- Visible connection error and retry countdown.
+- Keep drafts until socket write succeeds; no false sent bubble on queueing; no automatic resend. Outgoing messages are explicitly unconfirmed.
+- Handle peer EOF and worker runtime failures; disable speculative idle probe and retain original keepalive.
+- Desktop regression tests pass; immediate disconnect cause and phone behavior still require device testing.
+
 # 0.2.0 — 2026-10-18
 
 - RetryPolicy / AutoReconnect: bounded-delay reconnection, transient-error allowlist, manual cancellation, single-worker guard, idle query and watchdog. Icq/JimmException integrate recovery; no outgoing message replay.
