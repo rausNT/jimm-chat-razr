@@ -1,6 +1,6 @@
 # Jimm Chat for Motorola RAZR
 
-> **Rollback notice (2026-10-18):** 0.2.0 and 0.2.1 are withdrawn after connection failures on the test phone. Code is reverted to 0.1.9. [Download the previous Windows package](https://github.com/rausNT/jimm-chat-razr/releases/download/v0.1.9/JimmChatSetup-0.1.9-windows.zip). This is an experimental fallback, not a confirmed fix. Tested only on our Motorola RAZR V3i (identified as V3ire); other phones are unverified.
+> **Current release: 0.1.12 (2026-10-18).** The owner reported normal operation on our Motorola RAZR V3i (identified as V3ire). [Download the complete Windows package](https://github.com/rausNT/jimm-chat-razr/releases/download/v0.1.12/JimmChatSetup-0.1.12-windows.zip). Other phones are unverified. Versions 0.2.0 and 0.2.1 remain withdrawn after connection failures; 0.1.12 builds on the 0.1.9 connection implementation.
 
 **Twenty years of messaging UX lessons, brought back to a Java feature phone.**
 
@@ -20,6 +20,9 @@ This is not an official Jimm.online or Motorola release, and it is not a Telegra
 - Keys **1–9** choose a reply or text smiley inside its picker.
 - Replies and smileys insert at the editor caret, preserving surrounding text. Sending is a separate action.
 - Up to 40 locally stored messages per chat, with an approximately 96 KiB archive budget.
+- A normal connection attempt on each fresh launch with a configured account, plus a direct offline Connect softkey.
+- Starter chats for Jimm Online, DeepSeek, Channels, Walls and OpenAI; no fabricated messages.
+- Clear socket-permission denial (#173) and a small connection diagnostic log in Help.
 
 ## Designed for buttons
 
@@ -38,7 +41,7 @@ The design goal is fewer presses and predictable navigation. This is an ongoing 
 
 Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.9** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
+The owner reported **0.1.12** working normally on the physical test phone after installation. Desktop adapter tests cover account validation, history, drafts, menus, quick entry and diagnostics; the Windows companion self-test covers personalization and source packaging. This is limited testing on one handset. The public build contains no embedded account.
 
 ## Windows setup companion
 
@@ -55,7 +58,7 @@ python test.py
 
 The first build downloads four pinned, hash-verified build dependencies. Output: `dist/JimmChat.jar` and `dist/JimmChat.jad`. See [BUILD.md](BUILD.md) for offline builds and dependency provenance.
 
-Create your own account at [Jimm.online](https://jimm.online/). On first launch, enter your UIN and password in My account (UIN, masked password, server and port), save, and connect. Defaults retain `icq.jimm.online:5190`, TCP/socket, no proxy; autoconnect starts disabled. Your mobile network Java/GPRS profile must already work.
+Create your own account at [Jimm.online](https://jimm.online/). On first launch, enter your UIN and password in My account (UIN, masked password, server and port), save, and use Connect on the chat list. Defaults retain `icq.jimm.online:5190`, TCP/socket, no proxy. Each fresh launch with a configured account starts a connection attempt and may prompt for network permission. Your mobile network Java/GPRS profile must already work.
 
 Transfer the JAR using the phone's normal Bluetooth/Java installation flow. No firmware patch is required. When upgrading the same suite, retain saved data if prompted. The existing suite vendor/name are preserved for data continuity.
 
