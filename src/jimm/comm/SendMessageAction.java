@@ -1,3 +1,4 @@
+/* Modified 2026-10-18: report actual write outcome; no changes to wire packet format. GPL-2.0-or-later. */
 /* Jimm Chat modification notice (GPL-2.0-or-later).
  * 2026-10-17: mechanically preprocessed upstream source for MOTOROLA, without optional modules; no intentional functional edit.
  * 2026-10-18: added this dated notice; original authors and license retained.
@@ -42,6 +43,8 @@ public class SendMessageAction extends Action
   private PlainMessage plainMsg;
   
   private int SEQ1 = 0xffff;
+  private int localId;
+  public SendMessageAction(Message msg,int id){this(msg);localId=id;}
 
 
 	// Constructor
@@ -59,8 +62,9 @@ public class SendMessageAction extends Action
   protected void init() throws JimmException
   {
     // Forward init request depending on message type
-    SEQ1--; 
-    initPlainMsg();
+    if(localId!=0&&!jimm.SimpleChat.outgoingStarted(localId))return;
+    SEQ1--;
+    try{initPlainMsg();if(localId!=0)jimm.SimpleChat.outgoingResult(localId,true);}catch(JimmException e){if(localId!=0)jimm.SimpleChat.outgoingResult(localId,false);throw e;}
   }
 
 

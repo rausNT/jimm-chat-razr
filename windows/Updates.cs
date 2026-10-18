@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Web.Script.Serialization;
 public static class Updates {
- public const string Current="0.2.0";
+ public const string Current="0.2.1";
  public static string Check(){
   ServicePointManager.SecurityProtocol|=SecurityProtocolType.Tls12;
   var request=(HttpWebRequest)WebRequest.Create("https://api.github.com/repos/rausNT/jimm-chat-razr/releases?per_page=5");request.UserAgent="JimmChatSetup/"+Current;request.Timeout=5000;request.ReadWriteTimeout=5000;request.AllowAutoRedirect=false;

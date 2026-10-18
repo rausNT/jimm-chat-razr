@@ -325,6 +325,8 @@ public class Icq implements Runnable
 
         // Reset all variables
         connected = false;
+        jimm.SimpleChat.outgoingConnectionLost();
+        jimm.AutoReconnect.transportClosed();
         
         // Reset all timer tasks
         Jimm.jimm.cancelTimer();
@@ -423,7 +425,7 @@ public class Icq implements Runnable
                     {
                         synchronized (wait)
                         {
-                            wait.wait(/*Icq.STANDBY*/);
+                            wait.wait(1000);
                         }
                     } catch (InterruptedException e)
                     {
@@ -511,6 +513,8 @@ public class Icq implements Runnable
         {
             // Do nothing, already handled
         }
+
+        catch (RuntimeException unexpected) { JimmException.handleException(new JimmException(120,99)); }
 
         // Close connection
         c.close();
@@ -866,11 +870,11 @@ public class Icq implements Runnable
 						do
 						{
 							bRead = ism.read(length, bReadSum, length.length - bReadSum);
-							if (bRead == -1) break;
+							if (bRead == -1) throw new IOException("Peer closed connection");
 							bReadSum += bRead;
 							bReadSumRequest += bRead;
 						} while (bReadSum < length.length);
-						if (bRead == -1) break;
+						if (bRead == -1) throw new IOException("Peer closed connection");
 						// Allocate memory for packet data
 						httpPacket = new byte[Util.getWord(length, 0)];
 						bReadSum = 0;
@@ -879,11 +883,11 @@ public class Icq implements Runnable
 						do
 						{
 							bRead = ism.read(httpPacket, bReadSum, httpPacket.length - bReadSum);
-							if (bRead == -1) break;
+							if (bRead == -1) throw new IOException("Peer closed connection");
 							bReadSum += bRead;
 							bReadSumRequest += bRead;
 						} while (bReadSum < httpPacket.length);
-						if (bRead == -1) break;
+						if (bRead == -1) throw new IOException("Peer closed connection");
 						
 						// Only process type 5 (flap) packets
 						if (Util.getWord(httpPacket, 2) == 0x0005)
@@ -1177,10 +1181,10 @@ public class Icq implements Runnable
                     do
                     {
                         bRead = is.read(flapHeader, bReadSum, flapHeader.length - bReadSum);
-                        if (bRead == -1) break;
+                        if (bRead == -1) throw new IOException("Peer closed connection");
                         bReadSum += bRead;
                     } while (bReadSum < flapHeader.length);
-                    if (bRead == -1) break;
+                    if (bRead == -1) throw new IOException("Peer closed connection");
 
                     // Verify flap header
                     if (Util.getByte(flapHeader, 0) != 0x2A) { throw (new JimmException(124, 0)); }
@@ -1193,10 +1197,10 @@ public class Icq implements Runnable
                     do
                     {
                         bRead = is.read(flapData, bReadSum, flapData.length - bReadSum);
-                        if (bRead == -1) break;
+                        if (bRead == -1) throw new IOException("Peer closed connection");
                         bReadSum += bRead;
                     } while (bReadSum < flapData.length);
-                    if (bRead == -1) break;
+                    if (bRead == -1) throw new IOException("Peer closed connection");
 
                     // Merge flap header and data and count the data
                     rcvdPacket = new byte[flapHeader.length + flapData.length];

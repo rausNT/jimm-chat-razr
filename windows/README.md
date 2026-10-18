@@ -7,7 +7,7 @@ A portable Windows Forms companion (.NET Framework 4.8 recommended on Windows 10
 On startup the EXE checks GitHub release metadata in the background, including preview releases. New versions open the official releases page on a click. It does not replace its JAR or EXE automatically, does not upload account data, and works offline using the embedded JAR.
 
 1. Pair the phone using Windows Bluetooth settings.
-2. Run `JimmChatSetup-0.2.0.exe`, enter your UIN/password. Server `icq.jimm.online` and port `5190` are prefilled and editable.
+2. Run `JimmChatSetup-0.2.1.exe`, enter your UIN/password. Server `icq.jimm.online` and port `5190` are prefilled and editable.
 3. Refresh the list and explicitly select your paired phone (name and address).
 4. Close Jimm on the phone, enable discoverability, click Create and transfer. Accept the file and Java installation on the handset.
 
@@ -21,10 +21,10 @@ From PowerShell with JDK 17 and Python 3.10+ available:
 
 ```powershell
 ./windows/build.ps1
-./windows/out/JimmChatSetup-0.2.0.exe --self-test ./windows/out/self-test
+./windows/out/JimmChatSetup-0.2.1.exe --self-test ./windows/out/self-test
 ```
 
-Use `-Offline` when the pinned Java build dependencies are cached. The build uses the Windows .NET Framework C# compiler and embeds a freshly built **public** JAR and corresponding source. It refuses private defaults/configuration. Output is `windows/out/JimmChatSetup-0.2.0.exe`.
+Use `-Offline` when the pinned Java build dependencies are cached. The build uses the Windows .NET Framework C# compiler and embeds a freshly built **public** JAR and corresponding source. It refuses private defaults/configuration. Output is `windows/out/JimmChatSetup-0.2.1.exe`.
 
 Self-tests use synthetic credentials and do not send files. They check ZIP content preservation, validation, source inclusion, JAD size, and construct/render the form. Hardware Bluetooth/installation testing is a separate step.
 
