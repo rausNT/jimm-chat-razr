@@ -36,7 +36,7 @@ The design goal is fewer presses and predictable navigation. This is an ongoing 
 
 Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.6** passed desktop adapter tests and its personalized counterpart was transferred to the phone; installation and all new controls have not yet been confirmed on-device. The public build is compiled and tested separately and contains no embedded account.
+Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.7** passed desktop adapter tests including direct native-menu dispatch; the new native menu layout still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
 
 ## Build and try
 

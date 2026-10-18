@@ -1,3 +1,7 @@
+# 0.1.7 — 2026-10-18
+
+- Expose Write, Quick reply and Smileys directly in the native Motorola command menu. Remove the nested Menu command in conversations; retain direct left Write and right Back. Regression checks cover direct dispatch and cleanup on return home.
+
 # Changes from Jimm 0.5.1
 
 License: GPL-2.0-or-later. This is an independent modified version.
@@ -29,7 +33,3 @@ SimpleChat.java: central FIRE/5 and the chat menu command open exactly three act
 - tests/ChatTest.java and make-stubs.py: caret, numeric selection, phrase persistence, cancellation and independent record stores covered.
 - Version, attribution and matching source bundles updated. Original copyright and GPL-2.0-or-later retained.
 
-
-## Public repository — 2026-10-18
-
-English and Russian README branches; public-only account defaults; repository ignores exclude generated outputs. Private workspace bundle generator is omitted from this public checkout. No application behavior changes from the sanitized 0.1.6 source.
