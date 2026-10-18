@@ -1,3 +1,10 @@
+# 0.2.0 — 2026-10-18
+
+- RetryPolicy / AutoReconnect: bounded-delay reconnection, transient-error allowlist, manual cancellation, single-worker guard, idle query and watchdog. Icq/JimmException integrate recovery; no outgoing message replay.
+- Single-line chat-list retry status and Application disconnect action; account edits stop pending retries.
+- Windows setup checks GitHub release metadata in the background and offers the release page; no silent downloads or executable replacement. Offline embedded JAR remains available.
+- Explicit experimental / single Motorola RAZR V3i (V3ire identification) compatibility notice. New recovery not hardware-verified.
+
 # 0.1.9 — 2026-10-18
 
 - Optional personal.dat resource provides installer-prepared initial UIN, password, host and port. Existing RMS settings retain precedence. Invalid configuration falls back to ordinary defaults. Windows companion personalizes the resource without recompiling Java.

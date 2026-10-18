@@ -1,3 +1,4 @@
+/* Modified 2026-10-18: classify failures for automatic recovery. GPL-2.0-or-later. */
 /* Jimm Chat modification notice (GPL-2.0-or-later).
  * 2026-10-17: mechanically preprocessed upstream source for MOTOROLA, without optional modules; no intentional functional edit.
  * 2026-10-18: added this dated notice; original authors and license retained.
@@ -55,6 +56,7 @@ public class JimmException extends Exception
 
 	// True, if this is a critial exception
 	protected boolean critical;
+    private int code;
 
 
 	// True, if an error message should be presented to the user
@@ -68,7 +70,8 @@ public class JimmException extends Exception
 	public JimmException(int errCode, int extErrCode)
 	{
 		super(JimmException.getErrDesc(errCode, extErrCode));
-		this.critical = true;
+		this.code=errCode;
+        this.critical = true;
 		this.displayMsg = true;
 	}
 
@@ -77,7 +80,8 @@ public class JimmException extends Exception
 	public JimmException(int errCode, int extErrCode, boolean displayMsg)
 	{
 		super(JimmException.getErrDesc(errCode, extErrCode));
-		this.critical = false;
+		this.code=errCode;
+        this.critical = false;
 		this.displayMsg = displayMsg;
 	}
 	
@@ -106,7 +110,8 @@ public class JimmException extends Exception
 	    if (e.isCritical())
 		{
 
-			// Reset comm. subsystem
+			boolean retry=AutoReconnect.failed(e.code);
+            // Reset comm. subsystem
 			Icq.resetServerCon();
 			
 			// Set offline status for all contacts and reset online counters 
@@ -117,7 +122,8 @@ public class JimmException extends Exception
 			// Unlock splash (if locked)
 			if (SplashCanvas.locked()) SplashCanvas.unlock(true);
 
-			// Display error message
+			if(retry){if(Icq.c!=null)Icq.c.close();return null;}
+            // Display error message
 			Alert errorMsg = new Alert(ResourceBundle.getString("error"), e.getMessage(), null, AlertType.ERROR);
 			errorMsg.setTimeout(Alert.FOREVER);
 			errorMsg.setCommandListener(e);

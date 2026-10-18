@@ -227,6 +227,7 @@ public class Jimm extends MIDlet
 	public void destroyApp(boolean unconditional) throws MIDletStateChangeException
 	{
         // Disconnect
+        AutoReconnect.shutdown();
         Icq.disconnect();       
         
         // Save traffic
