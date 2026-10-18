@@ -1,5 +1,7 @@
 # Jimm Chat for Motorola RAZR
 
+> **Rollback notice (2026-10-18):** 0.2.0 and 0.2.1 are withdrawn after connection failures on the test phone. Code is reverted to 0.1.9. [Download the previous Windows package](https://github.com/rausNT/jimm-chat-razr/releases/download/v0.1.9/JimmChatSetup-0.1.9-windows.zip). This is an experimental fallback, not a confirmed fix. Tested only on our Motorola RAZR V3i (identified as V3ire); other phones are unverified.
+
 **Twenty years of messaging UX lessons, brought back to a Java feature phone.**
 
 An independent, experimental fork of **Jimm 0.5.1** for [Jimm.online](https://jimm.online/), focused on Motorola RAZR V3i/V3ire: conversations first, fewer menu steps, and faster typing on a physical keypad.
