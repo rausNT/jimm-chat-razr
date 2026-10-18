@@ -25,7 +25,7 @@ This is not an official Jimm.online or Motorola release, and it is not a Telegra
 
 Transient connection failures retry after 5, 15, 30 and then 60 seconds. The old connection worker must finish before another starts. Manual Disconnect, exit, invalid credentials, invalid server settings and rate-limit errors stop retries. Messages are never automatically replayed.
 
-Offline, the left softkey connects immediately from the chat list or conversation; during connection it cancels. The header shows the error code and retry countdown. The original FLAP keepalive is retained; the experimental idle probe is disabled. Connection attempts have a 90-second watchdog; platform blocking socket operations can delay cleanup. Peer EOF now enters error recovery. Messages remain drafts until socket write succeeds; outgoing bubbles say “Не подтверждено” because this send path does not track server receipts. A socket write is not proof of delivery.
+After two minutes without received packets, a read-only OSCAR ICBM parameter query checks server responsiveness; 45 seconds without incoming traffic triggers recovery. Connection attempts have a 90-second watchdog; platform blocking socket operations can delay cleanup. Compatibility of the probe with the deployed server still needs real-phone testing. The chat-list header shows retry status; Application → Disconnect stops it.
 
 ## Designed for buttons
 
@@ -44,7 +44,7 @@ The design goal is fewer presses and predictable navigation. This is an ongoing 
 
 Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.2.1** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
+Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.2.0** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
 
 ## Windows setup companion
 

@@ -9,10 +9,7 @@ public final class RetryPolicy {
  public synchronized void connected(long now){if(!wanted)return;online=true;connecting=false;due=0;lastReceived=now;started=now;probeAt=0;lastError=0;}
  public synchronized void received(long now){lastReceived=now;probeAt=0;if(online&&now-started>=60000)failures=0;}
  public synchronized boolean retry(long now,boolean workerBusy){if(!wanted||due==0||now<due||workerBusy)return false;due=0;connecting=true;started=now;return true;}
- public synchronized int watchdog(long now){return wanted&&connecting&&now-started>=90000?2:0;}
- public synchronized boolean isConnecting(){return wanted&&connecting;}
- public synchronized void closed(long now){if(wanted&&due==0)failed(120,now);}
-
+ public synchronized int watchdog(long now){if(!wanted)return 0;if(connecting&&now-started>=90000)return 2;if(!online)return 0;if(probeAt!=0)return now-probeAt>=45000?2:0;if(now-lastReceived>=120000){probeAt=now;return 1;}return 0;}
  public synchronized boolean wantsConnection(){return wanted;}
- public synchronized String status(long now){if(!wanted)return lastError==0?"Не в сети":"Ошибка "+lastError;if(online)return "В сети";if(connecting)return "Подключение…";return "#"+lastError+" Повтор "+Math.max(0,(due-now+999)/1000)+"с";}
+ public synchronized String status(long now){if(!wanted)return lastError==0?"Не в сети":"Ошибка "+lastError;if(online)return "В сети";if(connecting)return "Подключение…";return "Повтор через "+Math.max(0,(due-now+999)/1000)+"с";}
 }
