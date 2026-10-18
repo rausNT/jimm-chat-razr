@@ -1,66 +1,68 @@
-# Jimm Chat for Motorola RAZR
+# Jimm Chat для Motorola RAZR
 
-**Twenty years of messaging UX lessons, brought back to a Java feature phone.**
+**Двадцать лет опыта в интерфейсах мессенджеров — на старом Java-телефоне.**
 
-An independent, experimental fork of **Jimm 0.5.1** for [Jimm.online](https://jimm.online/), focused on Motorola RAZR V3i/V3ire: conversations first, fewer menu steps, and faster typing on a physical keypad.
+Независимая экспериментальная модификация **Jimm 0.5.1** для [Jimm.online](https://jimm.online/), ориентированная на Motorola RAZR V3i/V3ire: переписки на первом плане, короткие меню и быстрый ввод с физических кнопок.
 
-[Русская ветка](https://github.com/rausNT/jimm-chat-razr/tree/russian) · [Build instructions](BUILD.md) · [Changes](CHANGES.md) · [License](COPYING)
+[English / main](https://github.com/rausNT/jimm-chat-razr/tree/main) · [Сборка](BUILD.md) · [Изменения](CHANGES.md) · [Лицензия](COPYING)
 
-This is not an official Jimm.online or Motorola release, and it is not a Telegram client. It uses the Jimm protocol implementation with a redesigned chat interface. The application UI is currently **Russian**; the branch names describe the documentation language.
+Это не официальный клиент Jimm.online или Motorola и не клиент Telegram. Сетевой протокол взят из Jimm, интерфейс переписки переработан. Интерфейс приложения пока русский; ветки отличаются языком README, исходники одинаковые.
 
-## What changes
+## Что умеет
 
-- A conversation list with message previews, unread counters and saved drafts.
-- Compact message bubbles and a single-line header for a small screen.
-- Three top-level sections: My account, New chat, Application; account comes first.
-- Three chat actions: Write, Quick reply, Smileys.
-- Nine editable quick replies, saved locally between launches.
-- Keys **1–9** choose a reply or text smiley inside its picker.
-- Replies and smileys insert at the editor caret, preserving surrounding text. Sending is a separate action.
-- Up to 40 locally stored messages per chat, with an approximately 96 KiB archive budget.
+- Список переписок: последнее сообщение, непрочитанные и сохранённые черновики.
+- Компактные пузыри сообщений и шапка в одну строку.
+- Главное меню: «Моя учётка», «Новый чат», «Приложение».
+- Меню чата: «Написать», «Быстрый ответ», «Смайлики».
+- Девять своих фраз с сохранением после перезапуска.
+- Выбор фраз и текстовых смайликов цифрами **1–9**.
+- Вставка у курсора с сохранением текста вокруг; отправка отдельным действием.
+- До 40 сообщений на чат и около 96 КиБ на локальный архив.
 
-## Designed for buttons
+## Управление
 
-| Where | Key/action | Result |
+| Где | Кнопка | Действие |
 | --- | --- | --- |
-| Conversation | Left softkey | Write a message |
-| Conversation | Center / 5 / Menu | Open the three chat actions |
-| Conversation | 1 / 3 | Quick replies / smileys |
-| Reply or smiley picker | 1–9 | Insert the matching item into the draft |
-| Reply picker | Select with arrows, then Edit | Replace that saved phrase |
-| Message editor | Quick reply / Smileys command | Insert at the current caret |
+| В переписке | Левая | Написать |
+| В переписке | Центр / 5 / Меню | Три действия чата |
+| В переписке | 1 / 3 | Фразы / смайлики |
+| В списке фраз или смайликов | 1–9 | Вставить выбранное в черновик |
+| В списке фраз | Выбрать стрелками → Изменить | Сохранить свою фразу |
+| В редакторе | Быстрый ответ / Смайлики | Вставить у курсора |
 
-The design goal is fewer presses and predictable navigation. This is an ongoing experiment, not a claim that every modern messenger feature fits a 2000s phone. Smileys are currently text; animated sticker packs and predictive typing are not implemented.
+Цель — меньше нажатий и предсказуемая навигация. Анимированных стикеров и предиктивного ввода пока нет; смайлики текстовые.
 
-## Device and release status
+## Совместимость и состояние
 
-Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
+Цель: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Разработка с реальным телефоном велась на **V3ire**. Работа на всех вариантах V3i не подтверждена.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.6** passed desktop adapter tests and its personalized counterpart was transferred to the phone; installation and all new controls have not yet been confirmed on-device. The public build is compiled and tested separately and contains no embedded account.
+Предыдущие персональные сборки подключались к Jimm.online на телефоне. Версия **0.1.6** прошла тесты с настольными адаптерами; персональный вариант передан на телефон, но установка и все новые действия ещё не подтверждены на устройстве. Публичная сборка собирается и проверяется отдельно, встроенной учётки в ней нет.
 
-## Build and try
+## Сборка и установка
 
-Install **JDK 17** and **Python 3.10+**, then run:
+Нужны **JDK 17** и **Python 3.10+**:
 
 ```sh
 python build.py
 python test.py
 ```
 
-The first build downloads four pinned, hash-verified build dependencies. Output: `dist/JimmChat.jar` and `dist/JimmChat.jad`. See [BUILD.md](BUILD.md) for offline builds and dependency provenance.
+При первой сборке скачиваются четыре зависимости с фиксированными версиями и проверкой SHA-256. Результат: `dist/JimmChat.jar` и `dist/JimmChat.jad`. Подробности и автономная сборка — в [BUILD.md](BUILD.md).
 
-Create your own account at [Jimm.online](https://jimm.online/). On first launch, enter your UIN and password in the original account settings, save, and connect. Defaults retain `icq.jimm.online:5190`, TCP/socket, no proxy; autoconnect starts disabled. Your mobile network Java/GPRS profile must already work.
+Создай свою учётку на [Jimm.online](https://jimm.online/). При первом запуске введи UIN и пароль в исходных настройках учётной записи, сохрани и подключись. Общие настройки: `icq.jimm.online:5190`, TCP/socket, без прокси. Автоподключение изначально выключено. Интернет-профиль Java/GPRS на телефоне должен работать.
 
-Transfer the JAR using the phone's normal Bluetooth/Java installation flow. No firmware patch is required. When upgrading the same suite, retain saved data if prompted. The existing suite vendor/name are preserved for data continuity.
+Передай JAR по Bluetooth и установи штатным способом. Прошивка не нужна. При обновлении сохрани данные, если телефон предложит. Имя и vendor Java-приложения оставлены прежними для совместимости сохранений.
 
-## Development
+## Разработка
 
-The main UI lives in `src/jimm/SimpleChat.java`; the existing Jimm code supplies networking and protocol handling. Sources are preprocessed, editable Java; resources and language text are included. Tests use desktop adapters for MIDP, RMS and transport, with no real messages sent. They cover drafts, menu navigation, numeric choices, caret insertion and persistent custom replies; they do not replace hardware testing.
+Основной интерфейс — `src/jimm/SimpleChat.java`; сеть и протокол — существующий код Jimm. В репозитории редактируемые Java-исходники, ресурсы, текст локализации и сборочные скрипты.
 
-Contributions should keep the main menus short, preserve drafts, avoid accidental sends, and include a small-screen/keypad test scenario. Please report the exact device variant, app version and reproduction steps. Never attach passwords or private chat history.
+Тесты используют адаптеры MIDP/RMS и имитацию сети, реальных сообщений не отправляют. Проверяются черновики, меню, выбор цифрами, вставка у курсора и сохранение своих фраз. Проверку на телефоне они не заменяют.
 
-## License and credits
+При изменениях сохраняйте короткие меню, черновики и отдельное действие отправки. В ошибках указывайте модель, версию и шаги воспроизведения; не прикладывайте пароли и личную переписку.
 
-**GPL-2.0-or-later.** Original Jimm: Copyright (C) 2003–06 Jimm Project. Original per-file notices remain. This independently modified version retains the upstream protocol implementation and resources; see [NOTICE.txt](NOTICE.txt), [RESOURCES.md](RESOURCES.md) and [CHANGES.md](CHANGES.md).
+## Лицензия
 
-When distributing binaries, accompany them with their matching source and build instructions. No warranty is provided.
+**GPL-2.0-or-later.** Original Jimm: Copyright (C) 2003–06 Jimm Project. Авторские уведомления сохранены. Происхождение ресурсов и отметки изменений — в [NOTICE.txt](NOTICE.txt), [RESOURCES.md](RESOURCES.md), [CHANGES.md](CHANGES.md).
+
+При распространении бинарной сборки прилагайте соответствующие ей исходники и инструкции сборки. Гарантии не предоставляются.
