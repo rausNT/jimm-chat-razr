@@ -1,18 +1,3 @@
-## 0.2.1 — 2026-10-18
-
-- Direct Connect/Cancel left softkey on list and chat screens.
-- Visible connection error and retry countdown.
-- Keep drafts until socket write succeeds; no false sent bubble on queueing; no automatic resend. Outgoing messages are explicitly unconfirmed.
-- Handle peer EOF and worker runtime failures; disable speculative idle probe and retain original keepalive.
-- Desktop regression tests pass; immediate disconnect cause and phone behavior still require device testing.
-
-# 0.2.0 — 2026-10-18
-
-- RetryPolicy / AutoReconnect: bounded-delay reconnection, transient-error allowlist, manual cancellation, single-worker guard, idle query and watchdog. Icq/JimmException integrate recovery; no outgoing message replay.
-- Single-line chat-list retry status and Application disconnect action; account edits stop pending retries.
-- Windows setup checks GitHub release metadata in the background and offers the release page; no silent downloads or executable replacement. Offline embedded JAR remains available.
-- Explicit experimental / single Motorola RAZR V3i (V3ire identification) compatibility notice. New recovery not hardware-verified.
-
 # 0.1.9 — 2026-10-18
 
 - Optional personal.dat resource provides installer-prepared initial UIN, password, host and port. Existing RMS settings retain precedence. Invalid configuration falls back to ordinary defaults. Windows companion personalizes the resource without recompiling Java.
