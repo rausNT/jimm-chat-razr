@@ -203,16 +203,11 @@ public class Jimm extends MIDlet
 		JimmUI.setColorScheme();
 		
 		if (Options.getString(Options.OPTION_UIN).length() == 0) { SimpleChat.instance().showAccount(); return; }
-		if (Options.getBoolean(Options.OPTION_AUTO_CONNECT))
-        {
-		    // Connect
-            ContactList.beforeConnect();
-            Icq.connect();
-        } else
-        {
-            // Activate main menu
-            SimpleChat.home();
-        }
+		// Starting Jimm is also the explicit network check requested for this
+		// Motorola build. Connector.open prompts the handset when its policy is
+		// set to ask, or reports a permission denial as error 173.
+        ContactList.beforeConnect();
+        Icq.connect();
 	}
 
 

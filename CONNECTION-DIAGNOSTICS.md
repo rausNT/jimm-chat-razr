@@ -12,9 +12,9 @@ Base: 0.1.9, after withdrawing 0.2.0 and 0.2.1. This branch is diagnostic, not a
 
 ## Diagnostic-only changes
 
-0.1.11 retains 0.1.9 protocol and connection decisions. Fixed numeric events record start, stage, critical exception code (code * 100 + extension), socket open, EOF and reset. The ring stores 20 entries in memory. Credentials, payloads and addresses are not recorded. Connection screen shows progress, elapsed seconds and RX packet count; Help -> Diagnostics displays the event snapshot.
+0.1.12 retains 0.1.9 protocol and connection decisions. Fixed numeric events record start, stage, critical exception code (code * 100 + extension), socket open, EOF and reset. The ring stores 20 entries in memory. Credentials, payloads and addresses are not recorded. Connection screen shows progress, elapsed seconds and RX packet count; Help -> Diagnostics displays the event snapshot.
 
-The JAR requests `javax.microedition.io.Connector.socket` in both its manifest and JAD. MIDP provides no portable API to read the Motorola permission decision in advance; the real socket open is the check and may trigger the system prompt. A `SecurityException` from that operation now becomes error 173 and diagnostic event 7. The app does not probe the network automatically when opened, because that would invoke the same permission prompt and create a network attempt without an explicit user action.
+The JAR requests `javax.microedition.io.Connector.socket` in both its manifest and JAD. MIDP provides no portable API to read the Motorola permission decision in advance; the real socket open is the check and may trigger the system prompt. A `SecurityException` from that operation now becomes error 173 and diagnostic event 7. On a fresh launch with an account, the app starts that normal connection attempt by design.
 
 ## Phone check
 

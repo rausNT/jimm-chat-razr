@@ -10,7 +10,7 @@ public class ChatTest {
  static void check(boolean b,String s){if(!b)throw new AssertionError(s);}
  static void render(SimpleChat c,String name)throws Exception{BufferedImage im=new BufferedImage(176,200,BufferedImage.TYPE_INT_RGB);c.paint(new Graphics(im.createGraphics(),176,200));ImageIO.write(im,"png",new File("dist/"+name+".png"));}
  public static void main(String[] args)throws Exception{
-  SimpleChat.home();SimpleChat c=SimpleChat.instance();check(c.chats.size()==0,"Empty startup");render(c,"empty-preview");
+  SimpleChat.home();SimpleChat c=SimpleChat.instance();check(c.chats.size()==5,"Starter chats restored");check(((SimpleChat.ThreadData)c.chats.elementAt(0)).name.equals("Jimm Online")&&((SimpleChat.ThreadData)c.chats.elementAt(0)).messages.size()==0,"Starter chat is local and has no fabricated message");render(c,"starter-preview");
   SimpleChat.received("123456","Алексей","Привет! Как твоя Motorola?",1000,false);
   SimpleChat.ThreadData a=(SimpleChat.ThreadData)c.chats.elementAt(0);a.name="Алексей";check(a.unread==1,"Unread increment");
   c.openThread(a);check(a.unread==0,"Read on opening");
@@ -22,7 +22,7 @@ public class ChatTest {
   Icq.online=true;Icq.fail=true;c.compose();c.commandAction(c.send,c.editor);check(Icq.sends==0&&a.draft.length()>0,"Failure retains draft");
   Icq.fail=false;c.compose();c.commandAction(c.send,c.editor);check(Icq.sends==1&&a.draft.length()==0,"Accepted send clears draft");
   SimpleChat.home();SimpleChat.received("654321","Мария","Увидимся завтра",1003,false);((SimpleChat.ThreadData)c.chats.elementAt(0)).name="Мария";render(c,"chats-preview");
-  c.save();SimpleChat loaded=new SimpleChat();check(loaded.chats.size()==2,"RMS chats round trip");check(((SimpleChat.ThreadData)loaded.chats.elementAt(0)).unread==1,"Unread persisted");
+  c.save();SimpleChat loaded=new SimpleChat();check(loaded.chats.size()==c.chats.size(),"RMS chats round trip keeps starter chats");check(((SimpleChat.ThreadData)loaded.chats.elementAt(0)).unread==1,"Unread persisted");
   for(int i=0;i<60;i++)SimpleChat.received("654321","Мария","Сообщение "+i,1000+i,false);check(((SimpleChat.ThreadData)c.chats.elementAt(0)).messages.size()==40,"History bounded");
   check(SimpleChat.wrap("длинноесловобезпробелов1234567890123456789",c.normal,40).size()>1,"Long words wrap");
   c.openThread((SimpleChat.ThreadData)c.chats.elementAt(0));c.scroll=100000;c.paint(new Graphics(new BufferedImage(176,200,1).createGraphics(),176,200));check(c.scroll<100000,"Scroll bounded");
@@ -31,11 +31,11 @@ public class ChatTest {
   int connectsBefore=Icq.connects;c.commandAction(c.connectNow,c);check(Icq.connects==connectsBefore+1&&Icq.online,"Direct Connect starts the platform network request");
   SimpleChat.home();check(c.commands.contains(c.open)&&!c.commands.contains(c.connectNow),"Online home hides Connect");
   check(RecordStore.data.length<=98304,"Archive bounded");
-  ContactList.items=new ContactListContactItem[]{new ContactListContactItem(0,0,"11111","Jimm Online",false,true),new ContactListContactItem(0,0,"11112","DeepSeek",false,true)};
+  ContactList.items=new ContactListContactItem[]{new ContactListContactItem(0,0,"77771","Roster one",false,true),new ContactListContactItem(0,0,"77772","Roster two",false,true)};
   int before=c.chats.size(),sent=Icq.sends;SimpleChat.home();check(c.chats.size()==before+2,"Roster contacts appear without messages");
-  SimpleChat.ThreadData bot=c.get("11111","");check(bot.name.equals("Jimm Online")&&bot.messages.size()==0&&bot.unread==0,"Real roster name, no fabricated messages");
+  SimpleChat.ThreadData bot=c.get("77771","");check(bot.name.equals("Roster one")&&bot.messages.size()==0&&bot.unread==0,"Real roster name, no fabricated messages");
   SimpleChat.home();check(c.chats.size()==before+2,"Roster refresh idempotent");check(Icq.sends==sent,"Roster import never sends messages");
-  bot.draft="draft";bot.messages.addElement(new SimpleChat.Msg("saved",true,1000));ContactList.items[0]=new ContactListContactItem(0,0,"11111","New name",false,true);SimpleChat.home();check(bot.name.equals("New name")&&bot.draft.equals("draft")&&bot.messages.size()==1,"Roster rename preserves history and drafts");
+  bot.draft="draft";bot.messages.addElement(new SimpleChat.Msg("saved",true,1000));ContactList.items[0]=new ContactListContactItem(0,0,"77771","New name",false,true);SimpleChat.home();check(bot.name.equals("New name")&&bot.draft.equals("draft")&&bot.messages.size()==1,"Roster rename preserves history and drafts");
   System.out.println("PASS: real roster import, empty conversations visible, deduplication, ZERO sends, rename preserves history.");
   c.showMenu();check(c.actions.labels.size()==3&&c.actions.labels.get(0).equals("Моя учётка"),"Three top sections, account first");
   c.actions.selected=0;c.commandAction(c.open,c.actions);check(Display.current==c.account,"Account opens directly");c.commandAction(c.back,c.account);check(Display.current==c.actions,"Account back to menu");
