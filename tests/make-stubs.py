@@ -30,5 +30,3 @@ sources['jimm/ChatHistory.java']='''package jimm;public class ChatHistory {publi
 sources['jimm/util/ResourceBundle.java']='package jimm.util;public class ResourceBundle {public static String getString(String k){return "Я";}}'
 for name,s in sources.items():
  f=p/'stubs'/name;f.parent.mkdir(parents=True,exist_ok=True);f.write_text(s,encoding='utf-8')
-
-# Reconnect integration is tested separately with the actual policy.

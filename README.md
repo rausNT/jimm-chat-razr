@@ -2,8 +2,6 @@
 
 **Twenty years of messaging UX lessons, brought back to a Java feature phone.**
 
-> **Experimental. It may not work on your phone.** Hardware testing has only used our Motorola RAZR V3i (identified by tools as V3ire). No other handset is verified. New automatic recovery is covered by desktop tests, but real connection-loss recovery on this phone has not yet been verified.
-
 An independent, experimental fork of **Jimm 0.5.1** for [Jimm.online](https://jimm.online/), focused on Motorola RAZR V3i/V3ire: conversations first, fewer menu steps, and faster typing on a physical keypad.
 
 [Русская ветка](https://github.com/rausNT/jimm-chat-razr/tree/russian) · [Build instructions](BUILD.md) · [Changes](CHANGES.md) · [License](COPYING)
@@ -20,12 +18,6 @@ This is not an official Jimm.online or Motorola release, and it is not a Telegra
 - Keys **1–9** choose a reply or text smiley inside its picker.
 - Replies and smileys insert at the editor caret, preserving surrounding text. Sending is a separate action.
 - Up to 40 locally stored messages per chat, with an approximately 96 KiB archive budget.
-
-## Automatic network recovery
-
-Transient connection failures retry after 5, 15, 30 and then 60 seconds. The old connection worker must finish before another starts. Manual Disconnect, exit, invalid credentials, invalid server settings and rate-limit errors stop retries. Messages are never automatically replayed.
-
-After two minutes without received packets, a read-only OSCAR ICBM parameter query checks server responsiveness; 45 seconds without incoming traffic triggers recovery. Connection attempts have a 90-second watchdog; platform blocking socket operations can delay cleanup. Compatibility of the probe with the deployed server still needs real-phone testing. The chat-list header shows retry status; Application → Disconnect stops it.
 
 ## Designed for buttons
 
@@ -44,7 +36,7 @@ The design goal is fewer presses and predictable navigation. This is an ongoing 
 
 Target: Motorola RAZR V3i/V3ire, MIDP 2.0 / CLDC 1.0. Hands-on development used a **V3ire**; compatibility with every V3i variant is not established.
 
-Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.2.0** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
+Earlier personalized builds connected to Jimm.online on the physical phone. Version **0.1.9** passed desktop adapter tests including editable account validation and saving; the new account form still needs confirmation on-device. The public build is compiled and tested separately and contains no embedded account.
 
 ## Windows setup companion
 

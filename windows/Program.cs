@@ -16,11 +16,7 @@ public sealed class InstallerForm:Form {
     public InstallerForm(bool discover){
         Text="Jimm Chat • Настройка Motorola";ClientSize=new Size(600,620);MinimumSize=new Size(570,650);StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);AutoScaleMode=AutoScaleMode.Dpi;
         layout.Dock=DockStyle.Fill;layout.Padding=new Padding(22);layout.ColumnCount=2;layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,110));layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));layout.AutoScroll=true;Controls.Add(layout);
-        Wide("Jimm Chat для Motorola RAZR • "+Updates.Current,true);
-        var updateLink=new LinkLabel{Text="Проверяем обновления…",AutoSize=true,Enabled=false};AddWide(updateLink);
-        updateLink.LinkClicked+=delegate{System.Diagnostics.Process.Start("https://github.com/rausNT/jimm-chat-razr/releases");};
-        if(discover)Shown+=async delegate{try{string newer=await Task.Run(()=>Updates.Check());updateLink.Text=newer==null?"Версия актуальна · GitHub":"Доступна версия "+newer+" · открыть GitHub (включая preview)";}catch{updateLink.Text="Обновления недоступны · встроенный JAR готов к работе";}updateLink.Enabled=true;};
-        Wide("1. Данные подключения",true);
+        Wide("Jimm Chat для Motorola RAZR",true);Wide("1. Данные подключения",true);
         Field("UIN",uin);Field("Пароль",password);password.UseSystemPasswordChar=true;password.MaxLength=128;uin.MaxLength=10;
         host.Text="icq.jimm.online";port.Text="5190";host.MaxLength=128;port.MaxLength=5;Field("Сервер",host);Field("Порт",port);
         Wide("2. Телефон",true);devices.DropDownStyle=ComboBoxStyle.DropDownList;Field("Bluetooth",devices);
